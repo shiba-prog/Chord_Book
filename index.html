@@ -2,16 +2,33 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Guitar Chord Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #121212; color: #e2e8f0; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #121212; color: #e2e8f0; -webkit-tap-highlight-color: transparent; }
         
-        .fretboard-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; border-radius: 0 0 8px 8px; }
-        .fretboard-scroll::-webkit-scrollbar { height: 10px; }
+        /* Fretboard Scroll Container */
+        .fretboard-scroll { 
+            overflow-x: auto; 
+            overflow-y: hidden; 
+            padding-bottom: 4px; 
+            border-radius: 0 0 8px 8px;
+            scroll-behavior: smooth; 
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+        .fretboard-scroll::-webkit-scrollbar { height: 6px; }
         .fretboard-scroll::-webkit-scrollbar-track { background: #2d2d2d; }
-        .fretboard-scroll::-webkit-scrollbar-thumb { background: #555; border-radius: 5px; }
+        .fretboard-scroll::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+
+        /* SVG Sizing */
+        .fretboard-svg {
+            height: auto;
+            /* Prevent it from becoming too small */
+            min-width: 680px; 
+            display: block;
+        }
 
         .chord-card { 
             background: linear-gradient(145deg, #1e1e1e, #181818);
@@ -21,7 +38,6 @@
             transition: all 0.2s; 
             display: flex; flex-direction: column; 
         }
-        .chord-card:hover { border-color: #eab308; transform: translateY(-2px); }
 
         .svg-text { font-family: sans-serif; font-weight: 800; pointer-events: none; text-anchor: middle; dominant-baseline: central; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
         .note-circle { transition: fill 0.2s; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6)); }
@@ -35,80 +51,98 @@
         .inlay { fill: #fdf5e6; opacity: 0.6; }
         
         /* Muted string styling */
-        .string-muted { opacity: 0.3; stroke: #555; }
+        .string-muted { opacity: 0.25; stroke: #444; }
 
-        .bass-btn {
+        /* UI Controls */
+        .bass-btn, .std-btn {
             font-size: 11px; font-weight: bold; padding: 6px 4px; margin: 2px;
             border-radius: 4px; border: 1px solid #444;
             background: linear-gradient(to bottom, #333, #222);
             color: #aaa; cursor: pointer; text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.4); flex: 1; min-width: 32px;
-        }
-        .bass-btn:hover { background: linear-gradient(to bottom, #444, #333); color: white; border-color: #666; }
-        .bass-btn.active { background: linear-gradient(to bottom, #f59e0b, #d97706); color: #fff; border-color: #fbbf24; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
-        
-        .std-btn {
-            font-size: 11px; font-weight: bold; padding: 6px 12px; margin: 2px;
-            border-radius: 4px; border: 1px solid #444;
-            background: linear-gradient(to bottom, #333, #222);
-            color: #aaa; width: 100%; text-align: center; cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.4);
         }
-        .std-btn:hover { background: linear-gradient(to bottom, #444, #333); color: white; border-color: #666; }
-        .std-btn.active { background: linear-gradient(to bottom, #3b82f6, #2563eb); color: white; border-color: #60a5fa; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+        .bass-btn { flex: 1; min-width: 32px; }
+        .std-btn { width: 100%; padding: 6px 12px; }
+        .bass-btn:hover, .std-btn:hover { background: linear-gradient(to bottom, #444, #333); color: white; border-color: #666; }
+        .bass-btn.active, .std-btn.active { background: linear-gradient(to bottom, #3b82f6, #2563eb); color: white; border-color: #60a5fa; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
 
         .play-btn {
             background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
-            color: white; border-radius: 50%; width: 40px; height: 40px;
+            color: white; border-radius: 50%; width: 36px; height: 36px;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
-            cursor: pointer; border: 1px solid #1e40af; margin-left: 12px; font-size: 20px;
+            cursor: pointer; border: 1px solid #1e40af; margin-left: 8px; font-size: 18px; flex-shrink: 0;
         }
-        .play-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
         .play-btn:active { transform: scale(0.95); box-shadow: inset 0 3px 5px rgba(0,0,0,0.3); }
 
         .ctrl-btn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 4px; background-color: #334155; color: #e2e8f0; transition: background-color 0.2s; }
-        .ctrl-btn:hover { background-color: #475569; }
-
-        select.tone-select { background-color: #222; color: #eee; border: 1px solid #444; font-size: 12px; padding: 6px 10px; border-radius: 6px; outline: none; cursor: pointer; }
         
-        .toggle-label { font-size: 10px; color: #888; font-weight: bold; margin-right: 4px; text-transform: uppercase; }
+        /* Toggle Switch & Groups */
         .toggle-group { display: flex; align-items: center; background: #222; padding: 4px 8px; border-radius: 6px; border: 1px solid #333; height: 32px; }
-        
-        /* Toggle Switch */
+        .toggle-label { font-size: 10px; color: #888; font-weight: bold; margin-right: 6px; text-transform: uppercase; white-space: nowrap; }
         .switch-btn { 
-            font-size: 11px; font-weight: bold; color: #666; padding: 2px 6px; cursor: pointer; transition: all 0.2s; border-radius: 4px;
+            font-size: 11px; font-weight: bold; color: #666; padding: 2px 8px; cursor: pointer; transition: all 0.2s; border-radius: 4px; display: flex; align-items: center; height: 20px;
         }
         .switch-btn.active { background-color: #444; color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        select.tone-select { background-color: #222; color: #eee; border: 1px solid #444; font-size: 11px; padding: 0 4px; border-radius: 4px; outline: none; cursor: pointer; height: 22px; }
+
+        /* --- Landscape Optimization for Mobile --- */
+        @media (max-height: 500px) and (orientation: landscape) {
+            header { padding-top: 4px !important; padding-bottom: 2px !important; }
+            .header-container { flex-direction: row !important; align-items: center !important; gap: 8px !important; margin-bottom: 2px !important; }
+            .title-area { margin-bottom: 0 !important; }
+            .title-text { font-size: 1.1rem !important; }
+            .status-badge { display: none; }
+            
+            /* Controls in one line */
+            .controls-area { flex-wrap: nowrap !important; gap: 4px !important; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 0; }
+            .toggle-group { height: 24px !important; padding: 0 4px !important; border: none; background: transparent; }
+            .toggle-label { font-size: 9px !important; margin-right: 2px !important; display: none; /* Hide labels to save space */ }
+            .switch-btn { font-size: 9px !important; padding: 1px 6px !important; height: 18px !important; }
+            select.tone-select { font-size: 9px !important; height: 18px !important; width: 60px; }
+            
+            /* Compact Filters */
+            #root-filters { padding-bottom: 1px !important; margin-bottom: 1px !important; }
+            #root-filters button { padding: 1px 6px !important; font-size: 0.7rem !important; height: 20px; }
+            
+            #type-filters { padding-top: 1px !important; padding-bottom: 1px !important; border-top: none !important; }
+            #type-filters button { padding: 1px 6px !important; font-size: 0.7rem !important; height: 20px; }
+            
+            /* Main Content Adjust */
+            main { padding-top: 4px !important; padding-bottom: 4px !important; }
+            .chord-card { padding: 8px !important; }
+            h2 { font-size: 1rem !important; }
+            .play-btn { width: 28px; height: 28px; font-size: 14px; margin-left: 4px; }
+            
+            /* Hide footer in landscape to save scroll space */
+            footer { display: none; }
+        }
     </style>
 </head>
 <body>
 
     <header class="bg-[#181818] sticky top-0 z-50 border-b border-[#333] shadow-xl pb-2">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <!-- Top Row: Title & Controls -->
-            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-3">
-                <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-bold text-white tracking-wider flex items-center gap-2">
-                        <span class="text-yellow-500 text-3xl">🎸</span> 
+        <div class="max-w-7xl mx-auto px-4 pt-3">
+            <!-- Header Top Row -->
+            <div class="header-container flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+                <div class="title-area flex items-center gap-3 flex-shrink-0">
+                    <h1 class="title-text text-2xl font-bold text-white tracking-wider flex items-center gap-2">
+                        <span class="text-yellow-500">🎸</span> 
                         <span class="text-gray-200">Chord Book</span>
                     </h1>
-                    <div id="status-msg" class="text-xs text-gray-400 bg-[#2a2a2a] px-3 py-1 rounded border border-[#444]">Ready</div>
+                    <div id="status-msg" class="status-badge text-xs text-gray-400 bg-[#2a2a2a] px-3 py-1 rounded border border-[#444]">Ready</div>
                 </div>
                 
-                <div class="flex flex-wrap items-center gap-3">
-                    <!-- Sound Select -->
+                <div class="controls-area flex flex-wrap items-center gap-3">
                     <div class="toggle-group">
                         <span class="toggle-label">Sound</span>
                         <select id="tone-selector" class="tone-select" onchange="setGuitarTone(this.value)">
                             <option value="acoustic">Acoustic</option>
-                            <option value="nylon">Classical</option>
-                            <option value="clean">Elec (Clean)</option>
-                            <option value="drive">Elec (Drive)</option>
+                            <option value="nylon">Classic</option>
+                            <option value="clean">Clean</option>
+                            <option value="drive">Drive</option>
                         </select>
                     </div>
-
-                    <!-- Root Accidental Toggle -->
                     <div class="toggle-group">
                         <span class="toggle-label">Root</span>
                         <div class="flex bg-[#111] rounded p-0.5">
@@ -116,8 +150,6 @@
                             <div id="btn-root-flat" onclick="setRootAccidental('b')" class="switch-btn">b</div>
                         </div>
                     </div>
-
-                    <!-- Naming Convention Toggle -->
                     <div class="toggle-group">
                         <span class="toggle-label">Name</span>
                         <div class="flex bg-[#111] rounded p-0.5">
@@ -125,8 +157,6 @@
                             <div id="btn-name-doremi" onclick="setNoteNaming('doremi')" class="switch-btn">ドレミ</div>
                         </div>
                     </div>
-
-                    <!-- Display Mode -->
                     <div class="toggle-group">
                         <span class="toggle-label">View</span>
                         <div class="flex bg-[#111] rounded p-0.5">
@@ -137,12 +167,13 @@
                 </div>
             </div>
 
-            <div id="root-filters" class="flex overflow-x-auto gap-2 pb-2 scrollbar-hide mb-1"></div>
-            <div id="type-filters" class="flex gap-2 pb-2 overflow-x-auto scrollbar-hide border-t border-[#333] pt-2"></div>
+            <!-- Filters -->
+            <div id="root-filters" class="flex overflow-x-auto gap-1.5 pb-2 scrollbar-hide mb-1"></div>
+            <div id="type-filters" class="flex gap-1.5 pb-2 overflow-x-auto scrollbar-hide border-t border-[#333] pt-2"></div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
+    <main class="max-w-7xl mx-auto px-4 py-6">
         <div id="chord-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6"></div>
         <div id="no-results" class="hidden text-center py-20 text-gray-500">No chords found.</div>
     </main>
@@ -161,22 +192,14 @@
             { v:8, s:'G#', f:'Ab' }, { v:9, s:'A', f:'A' }, { v:10, s:'A#', f:'Bb' }, { v:11, s:'B', f:'B' }
         ];
 
-        const KEY_PREFERENCE = {
-            0: 'b', 1: 'x', 2: '#', 3: 'x', 4: '#', 5: 'b', 
-            6: 'x', 7: '#', 8: 'x', 9: '#', 10: 'x', 11: '#'
-        };
-
-        const NOTE_DEFS = {
-            '#': ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
-            'b': ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
-        };
-        const DOREMI_DEFS = {
-            '#': ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'],
-            'b': ['ド', 'レ♭', 'レ', 'ミ♭', 'ミ', 'ファ', 'ソ♭', 'ソ', 'ラ♭', 'ラ', 'シ♭', 'シ']
-        };
-
+        const KEY_PREFERENCE = { 0:'b', 1:'x', 2:'#', 3:'x', 4:'#', 5:'b', 6:'x', 7:'#', 8:'x', 9:'#', 10:'x', 11:'#' };
+        const NOTE_DEFS = { '#': ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], 'b': ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'] };
+        const DOREMI_DEFS = { '#': ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'], 'b': ['ド', 'レ♭', 'レ', 'ミ♭', 'ミ', 'ファ', 'ソ♭', 'ソ', 'ラ♭', 'ラ', 'シ♭', 'シ'] };
         const DEGREE_NAMES = ['R', 'b9', '2', 'm3', 'M3', '4', 'b5', '5', '#5', '6', 'b7', 'M7'];
         const TUNING_VALS = [4, 9, 2, 7, 11, 4];
+        
+        const DRAW_NUT = 40;
+        const DRAW_FW = 45;
 
         const TYPES = [
             { id: 'ALL', name: 'All', suffix: '' },
@@ -192,93 +215,27 @@
         ];
 
         const SHAPES = {
-            '': [ 
-                { f: '022100', base: 4, n: 'E Shape' }, 
-                { f: 'x02220', base: 9, n: 'A Shape' }, 
-                { f: 'xx0232', base: 2, n: 'D Shape' }
-            ],
-            'm': [ 
-                { f: '022000', base: 4, n: 'Em Shape' }, 
-                { f: 'x02210', base: 9, n: 'Am Shape' }, 
-                { f: 'xx0231', base: 2, n: 'Dm Shape' } 
-            ],
-            '7': [ 
-                { f: '020100', base: 4, n: 'E7 Shape' }, 
-                { f: 'x02020', base: 9, n: 'A7 Shape' }, 
-                { f: 'xx0212', base: 2, n: 'D7 Shape' } 
-            ],
-            'm7': [ 
-                { f: '020000', base: 4, n: 'Em7 Shape' }, 
-                { f: 'x02010', base: 9, n: 'Am7 Shape' }, 
-                { f: 'xx0211', base: 2, n: 'Dm7 Shape' } 
-            ],
-            'maj7': [ 
-                { f: '021100', base: 4, n: 'Emaj7 Shape' }, 
-                { f: 'x02120', base: 9, n: 'Amaj7 Shape' }, 
-                { f: 'xx0222', base: 2, n: 'Dmaj7 Shape' } 
-            ],
-            'sus4': [ 
-                { f: '022200', base: 4, n: 'Esus4 Shape' }, 
-                { f: 'x02230', base: 9, n: 'Asus4 Shape' }, 
-                { f: 'xx0233', base: 2, n: 'Dsus4 Shape' } 
-            ],
-            'sus2': [ 
-                { f: 'x02200', base: 9, n: 'Asus2 Shape' }, 
-                { f: 'xx0230', base: 2, n: 'Dsus2 Shape' } 
-            ],
-            'add9': [ 
-                { f: '022102', base: 4, n: 'Eadd9 Shape' },
-                { f: 'x02420', base: 9, n: 'Aadd9 Shape (5str)', opts: { noBarre: true } }  
-            ],
-            'aug': [ 
-                { f: '3x344x', base: 7, n: 'aug (Root 6)', opts: { noBarre: true } },
-                { f: 'x3211x', base: 0, n: 'Caug Shape (5th Root)', opts: { noBarre: true } },
-                { f: 'xx0332', base: 2, n: 'Daug Shape (4th Root)', opts: { noBarre: true } }
-            ],
-            'aug7': [ 
-                { f: '2x233x', base: 6, n: 'aug7 (6str F# Form)', opts: { noBarre: true } },
-                { f: 'x3635x', base: 0, n: 'aug7 (5str C Form)', opts: { noBarre: false } } 
-            ],
-            'dim': [ 
-                { f: '2x121x', base: 6, n: 'dim7 (6str F# Form)', opts: { noBarre: true } }, 
-                { f: 'x1212x', base: 10, n: 'dim7 (5str Bb Form)', opts: { noBarre: true } },
-                { f: 'x12020', base: 10, n: 'dim7 (5str A# Form)' }, 
-                { f: 'x01212', base: 9, n: 'dim7 (5str Open)', opts: { noBarre: true } },
-                { f: 'xx1212', base: 3, n: 'dim7 (4str)', opts: { noBarre: true } }
-            ],
-            'm7-5': [ 
-                { f: '2x221x', base: 6, n: 'm7-5 (Root 6)' },
-                { f: 'x01013', base: 9, n: 'Am7-5 Shape' }, 
-                { f: 'xx0111', base: 2, n: 'Dm7-5 Shape' }
-            ],
-            'mM7': [ 
-                { f: '021000', base: 4, n: 'EmM7 Shape' }, 
-                { f: 'x02110', base: 9, n: 'AmM7 Shape' }, 
-                { f: 'xx0221', base: 2, n: 'DmM7 Shape' } 
-            ]
+            '': [ { f: '022100', base: 4, n: 'E Shape' }, { f: 'x02220', base: 9, n: 'A Shape' }, { f: 'xx0232', base: 2, n: 'D Shape' } ],
+            'm': [ { f: '022000', base: 4, n: 'Em Shape' }, { f: 'x02210', base: 9, n: 'Am Shape' }, { f: 'xx0231', base: 2, n: 'Dm Shape' } ],
+            '7': [ { f: '020100', base: 4, n: 'E7 Shape' }, { f: 'x02020', base: 9, n: 'A7 Shape' }, { f: 'xx0212', base: 2, n: 'D7 Shape' } ],
+            'm7': [ { f: '020000', base: 4, n: 'Em7 Shape' }, { f: 'x02010', base: 9, n: 'Am7 Shape' }, { f: 'xx0211', base: 2, n: 'Dm7 Shape' } ],
+            'maj7': [ { f: '021100', base: 4, n: 'Emaj7 Shape' }, { f: 'x02120', base: 9, n: 'Amaj7 Shape' }, { f: 'xx0222', base: 2, n: 'Dmaj7 Shape' } ],
+            'sus4': [ { f: '022200', base: 4, n: 'Esus4 Shape' }, { f: 'x02230', base: 9, n: 'Asus4 Shape' }, { f: 'xx0233', base: 2, n: 'Dsus4 Shape' } ],
+            'sus2': [ { f: 'x02200', base: 9, n: 'Asus2 Shape' }, { f: 'xx0230', base: 2, n: 'Dsus2 Shape' } ],
+            'add9': [ { f: '022102', base: 4, n: 'Eadd9 Shape' }, { f: 'x02420', base: 9, n: 'Aadd9 Shape (5str)', opts: { noBarre: true } } ],
+            'aug': [ { f: '3x344x', base: 7, n: 'aug (Root 6)', opts: { noBarre: true } }, { f: 'x3211x', base: 0, n: 'Caug Shape (5th Root)', opts: { noBarre: true } }, { f: 'xx0332', base: 2, n: 'Daug Shape (4th Root)', opts: { noBarre: true } } ],
+            'aug7': [ { f: '2x233x', base: 6, n: 'aug7 (6str F# Form)', opts: { noBarre: true } }, { f: 'x3635x', base: 0, n: 'aug7 (5str C Form)', opts: { noBarre: false } } ],
+            'dim': [ { f: '2x121x', base: 6, n: 'dim7 (6str F# Form)', opts: { noBarre: true } }, { f: 'x1212x', base: 10, n: 'dim7 (5str Bb Form)', opts: { noBarre: true } }, { f: 'x12020', base: 10, n: 'dim7 (5str A# Form)' }, { f: 'x01212', base: 9, n: 'dim7 (5str Open)', opts: { noBarre: true } }, { f: 'xx1212', base: 3, n: 'dim7 (4str)', opts: { noBarre: true } } ],
+            'm7-5': [ { f: '2x221x', base: 6, n: 'm7-5 (Root 6)' }, { f: 'x01013', base: 9, n: 'Am7-5 Shape' }, { f: 'xx0111', base: 2, n: 'Dm7-5 Shape' } ],
+            'mM7': [ { f: '021000', base: 4, n: 'EmM7 Shape' }, { f: 'x02110', base: 9, n: 'AmM7 Shape' }, { f: 'xx0221', base: 2, n: 'DmM7 Shape' } ]
         };
 
         const SLASH_TEMPLATES = {
-            '': [ 
-                { f: '002220', base: 9, bassInterval: 7, n: '/5 (A-form)' }, 
-                { f: '4x2100', base: 4, bassInterval: 4, n: '/3 (E-form)' }, 
-                { f: '200232', base: 2, bassInterval: 4, n: '/3 (D-form)' }
-            ],
-            'm': [ 
-                { f: '302210', base: 9, bassInterval: 10, n: '/b7 (Am/G)' },
-                { f: '2x2210', base: 9, bassInterval: 9, n: '/6 (Am/F#)' },
-                { f: '322000', base: 4, bassInterval: 3, n: '/b3 (Em/G)' }
-            ],
-            '7': [
-                 { f: '200212', base: 2, bassInterval: 4, n: '/3 (D7/F#)' },
-                 { f: '002020', base: 9, bassInterval: 7, n: '/5 (A7/E)' }
-            ],
-            'm7': [
-                { f: '302010', base: 9, bassInterval: 10, n: '/b7 (Am7/G)' }
-            ],
-            'maj7': [
-                 { f: '332000', base: 0, bassInterval: 7, n: '/5 (Cmaj7/G)' } 
-            ]
+            '': [ { f: '002220', base: 9, bassInterval: 7, n: '/5 (A-form)' }, { f: '4x2100', base: 4, bassInterval: 4, n: '/3 (E-form)' }, { f: '200232', base: 2, bassInterval: 4, n: '/3 (D-form)' } ],
+            'm': [ { f: '302210', base: 9, bassInterval: 10, n: '/b7 (Am/G)' }, { f: '2x2210', base: 9, bassInterval: 9, n: '/6 (Am/F#)' }, { f: '322000', base: 4, bassInterval: 3, n: '/b3 (Em/G)' } ],
+            '7': [ { f: '200212', base: 2, bassInterval: 4, n: '/3 (D7/F#)' }, { f: '002020', base: 9, bassInterval: 7, n: '/5 (A7/E)' } ],
+            'm7': [ { f: '302010', base: 9, bassInterval: 10, n: '/b7 (Am7/G)' } ],
+            'maj7': [ { f: '332000', base: 0, bassInterval: 7, n: '/5 (Cmaj7/G)' } ]
         };
 
         const MANUAL_OVERRIDES = {
@@ -334,7 +291,6 @@
             return fingerCount <= 4;
         };
 
-        // State
         let state = { 
             root: 'ALL', type: 'ALL', chordSelection: {}, subIndices: {}, 
             displayMode: 'note', tone: 'acoustic', accidental: '#', naming: 'cde'    
@@ -363,7 +319,6 @@
                     const list = [];
                     let slashList = [];
 
-                    // Templates
                     const tmpls = SHAPES[type.id] || [];
                     tmpls.forEach(tmpl => {
                         let diff = (r.v - tmpl.base + 12) % 12;
@@ -381,7 +336,6 @@
                         }
                     });
 
-                    // Sort
                     list.sort((a, b) => {
                         const getMinFret = (fStr) => {
                             const frets = parseFrets(fStr).filter(x => x > 0);
@@ -394,7 +348,6 @@
                         return getMinFret(a.f) - getMinFret(b.f);
                     });
 
-                    // Slash
                     const slashTmpls = SLASH_TEMPLATES[type.id] || [];
                     slashTmpls.forEach(tmpl => {
                          let diff = (r.v - tmpl.base + 12) % 12;
@@ -411,7 +364,6 @@
                          }
                     });
 
-                    // Manual Overrides
                     let overrideKey = null;
                     if (MANUAL_OVERRIDES[rootName + type.id]) overrideKey = rootName + type.id;
                     else {
@@ -551,30 +503,29 @@
         }
 
         function drawBoard(frets, rootVal, id, noBarre = false) {
-            const W=740, H=200, nut=40, fW=45;
-            const getX = f => f===0 ? nut/2 : nut + (f*fW) - (fW/2);
+            const W=740, H=200;
+            const getX = f => f===0 ? DRAW_NUT/2 : DRAW_NUT + (f*DRAW_FW) - (DRAW_FW/2);
             const getY = s => 35 + ((5-s)*22);
 
-            let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
-            s += `<rect x="${nut}" y="20" width="${W-nut-10}" height="135" class="fretboard-bg" rx="4"/>`;
-            s += `<line x1="${nut}" y1="20" x2="${nut}" y2="155" stroke="#999" stroke-width="6"/>`;
+            let s = `<svg class="fretboard-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+            s += `<rect x="${DRAW_NUT}" y="20" width="${W-DRAW_NUT-10}" height="135" class="fretboard-bg" rx="4"/>`;
+            s += `<line x1="${DRAW_NUT}" y1="20" x2="${DRAW_NUT}" y2="155" stroke="#999" stroke-width="6"/>`;
 
             for(let f=1; f<=15; f++){
-                let x = nut + f*fW;
+                let x = DRAW_NUT + f*DRAW_FW;
                 s += `<line x1="${x}" y1="20" x2="${x}" y2="155" class="fret-wire" stroke-width="2"/>`;
-                if([3,5,7,9,15].includes(f)) s+= `<circle cx="${x-fW/2}" cy="87.5" r="6" class="inlay"/>`;
-                if(f===12) { s+= `<circle cx="${x-fW/2}" cy="60" r="6" class="inlay"/><circle cx="${x-fW/2}" cy="115" r="6" class="inlay"/>`; }
-                if([1,3,5,7,9,12,15].includes(f)) s+= `<text class="fret-num" x="${x-fW/2}" y="175">${f}</text>`;
+                if([3,5,7,9,15].includes(f)) s+= `<circle cx="${x-DRAW_FW/2}" cy="87.5" r="6" class="inlay"/>`;
+                if(f===12) { s+= `<circle cx="${x-DRAW_FW/2}" cy="60" r="6" class="inlay"/><circle cx="${x-DRAW_FW/2}" cy="115" r="6" class="inlay"/>`; }
+                if([1,3,5,7,9,12,15].includes(f)) s+= `<text class="fret-num" x="${x-DRAW_FW/2}" y="175">${f}</text>`;
             }
 
             for(let i=0; i<6; i++){
                 let y = getY(i);
-                // Apply muted style if this string is muted (-1)
                 let isMuted = (frets[i] === -1);
                 let cls = i<3 ? 'string-wound' : 'string-plain';
                 let clsAdd = isMuted ? ' string-muted' : '';
                 
-                s += `<line x1="${nut-10}" y1="${y}" x2="${W}" y2="${y}" class="${cls}${clsAdd}" stroke-width="${1+(1-i/5)}"/>`;
+                s += `<line x1="${DRAW_NUT-10}" y1="${y}" x2="${W}" y2="${y}" class="${cls}${clsAdd}" stroke-width="${1+(1-i/5)}"/>`;
             }
 
             // Barre Logic
@@ -594,7 +545,7 @@
             frets.forEach((f, i) => {
                 let y = getY(i);
                 if(f===-1) {
-                    s += `<text x="${nut/2}" y="${y}" class="mute-mark" font-size="16">×</text>`;
+                    s += `<text x="${DRAW_NUT/2}" y="${y}" class="mute-mark" font-size="16">×</text>`;
                 } else {
                     const nVal = (TUNING_VALS[i] + f) % 12;
                     const deg = (nVal - rootVal + 12) % 12;
@@ -691,7 +642,8 @@
 
                     const uid = key.replace('#','s').replace('/','_');
                     const noBarre = pat.opts && pat.opts.noBarre;
-                    const svg = drawBoard(parseFrets(pat.f), r.v, uid, noBarre);
+                    const parsedFrets = parseFrets(pat.f);
+                    const svg = drawBoard(parsedFrets, r.v, uid, noBarre);
 
                     const div = document.createElement('div');
                     div.className = 'chord-card p-4 flex flex-col';
@@ -703,10 +655,39 @@
                             </div>
                             <div class="w-32">${ctrl}</div>
                         </div>
-                        <div class="w-full overflow-x-auto fretboard-scroll mb-1">${svg}</div>
+                        <div class="fretboard-scroll mb-1" id="scroll-${uid}">${svg}</div>
                         ${btns}
                     `;
                     grid.appendChild(div);
+
+                    // Auto-scroll logic: Center the played position
+                    requestAnimationFrame(() => {
+                        const container = document.getElementById(`scroll-${uid}`);
+                        if (container) {
+                            const fretted = parsedFrets.filter(f => f > 0);
+                            // If we have fretted notes (not just open), center on them
+                            if (fretted.length > 0) {
+                                const minF = Math.min(...fretted);
+                                const maxF = Math.max(...fretted);
+                                const centerFret = (minF + maxF) / 2;
+                                
+                                // Calculate pixel position of center fret
+                                // x = DRAW_NUT + f*DRAW_FW
+                                const targetX = DRAW_NUT + centerFret * DRAW_FW;
+                                const containerW = container.clientWidth;
+                                
+                                // Scroll to center (targetX - half container width)
+                                // Only scroll if it's not a low chord (e.g. fret 3 or less usually fits without scroll)
+                                if (centerFret > 3) {
+                                    container.scrollLeft = targetX - (containerW / 2);
+                                } else {
+                                    container.scrollLeft = 0;
+                                }
+                            } else {
+                                container.scrollLeft = 0;
+                            }
+                        }
+                    });
                 });
             });
             document.getElementById('count-display').textContent = `${c} forms`;
