@@ -10,6 +10,8 @@
         html, body {
             width: 100%;
             height: 100%;
+            margin: 0;
+            padding: 0;
             overflow-x: hidden; 
             overscroll-behavior-x: none; 
             font-family: 'Helvetica Neue', Arial, sans-serif; 
@@ -139,6 +141,9 @@
                 display: flex !important; flex-direction: column !important; 
                 padding: 12px 8px !important; 
                 background: #181818; z-index: 50;
+                margin: 0 !important; /* Ensure no margin shift */
+                
+                /* Safe area handling */
                 padding-left: max(8px, env(safe-area-inset-left)) !important; 
             }
 
@@ -174,12 +179,10 @@
                 justify-content: center;
             }
             
-            /* Make ALL buttons full width in sidebar */
+            /* Styles for ALL buttons in sidebar - REMOVED FIXED COLOR */
             #root-filters button.btn-all, #type-filters button.btn-all {
                 flex: 1 0 100% !important;
                 margin-bottom: 8px !important;
-                background-color: #3b82f6 !important; /* Blue for emphasis */
-                color: white !important;
                 padding: 6px !important;
             }
             
@@ -251,7 +254,9 @@
     </footer>
 
     <script>
-        // Constants & Data
+        // ==========================================
+        // 1. DATA CONSTANTS
+        // ==========================================
         const ROOT_VALUES = [
             { v:0, s:'C', f:'C' }, { v:1, s:'C#', f:'Db' }, { v:2, s:'D', f:'D' }, { v:3, s:'D#', f:'Eb' },
             { v:4, s:'E', f:'E' }, { v:5, s:'F', f:'F' }, { v:6, s:'F#', f:'Gb' }, { v:7, s:'G', f:'G' },
@@ -504,7 +509,7 @@
             state.naming = mode;
             document.getElementById('btn-name-cde').className = `switch-btn ${mode==='cde'?'active':''}`;
             document.getElementById('btn-name-doremi').className = `switch-btn ${mode==='doremi'?'active':''}`;
-            render(); 
+            updateAllCardLabels();
         }
 
         function setDisplayMode(mode) {
@@ -512,7 +517,18 @@
             state.displayMode = mode;
             document.getElementById('btn-mode-note').className = `switch-btn ${mode==='note'?'active':''}`;
             document.getElementById('btn-mode-degree').className = `switch-btn ${mode==='degree'?'active':''}`;
-            render();
+            updateAllCardLabels();
+        }
+
+        function updateAllCardLabels() {
+            document.querySelectorAll('.chord-card').forEach(card => {
+                const rootVal = parseInt(card.getAttribute('data-root-val'));
+                const fStr = card.getAttribute('data-fstr');
+                const frets = parseFrets(fStr);
+                const newSvg = drawBoard(frets, rootVal, 'update', false);
+                const scroll = card.querySelector('.fretboard-scroll');
+                scroll.innerHTML = newSvg;
+            });
         }
 
         function playString(freq, time, toneType) {
@@ -644,7 +660,6 @@
             return s;
         }
 
-        // --- Render UI ---
         function createChordCard(key, title, pat, rootVal, data, idx, activePatterns, uid) {
             const noBarre = pat.opts && pat.opts.noBarre;
             const parsedFrets = parseFrets(pat.f);
@@ -698,13 +713,10 @@
                         const maxF = Math.max(...fretted);
                         const centerFret = (minF + maxF) / 2;
                         
-                        // Use fixed calculation assuming standard scale
-                        const targetX = DRAW_NUT + centerFret * DRAW_FW;
-                        
-                        // Check if we need to adjust for actual SVG scale
                         const svgEl = container.querySelector('svg');
                         if (svgEl) {
                             const ratio = svgEl.clientWidth / SVG_VIEW_W; 
+                            const targetX = DRAW_NUT + centerFret * DRAW_FW;
                             const targetX_PX = targetX * ratio;
                             const containerW = container.clientWidth;
                             
@@ -781,7 +793,6 @@
         window.setR = v => { state.root = v; render(); };
         window.setT = v => { state.type = v; render(); };
         
-        // Partial Update for Variation Change
         window.selB = (k,b) => { 
             state.chordSelection[k]=b; 
             state.subIndices[`${k}-${b}`] = 0; 
@@ -836,7 +847,7 @@
             state.displayMode=m;
             document.getElementById('btn-mode-note').className = `switch-btn ${m==='note'?'active':''}`;
             document.getElementById('btn-mode-degree').className = `switch-btn ${m==='degree'?'active':''}`;
-            document.querySelectorAll('.chord-card').forEach(c => { render(); });
+            updateAllCardLabels();
         };
 
         generateAll();
