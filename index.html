@@ -6,9 +6,39 @@
     <title>Guitar Chord Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #121212; color: #e2e8f0; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
-        
-        /* --- Common Styles --- */
+        /* --- Core Layout Stability Fixes --- */
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden; 
+            overscroll-behavior-x: none; 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            background-color: #121212; 
+            color: #e2e8f0; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Portrait Sticky Header */
+        header {
+            width: 100%;
+            left: 0;
+            right: 0;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        /* Main Content */
+        main {
+            width: 100%;
+            max-width: 80rem; 
+            margin-left: auto;
+            margin-right: auto;
+            padding: 1rem 1rem 2rem 1rem;
+            overflow-x: hidden; 
+        }
+
+        /* --- Components --- */
         .fretboard-scroll { 
             overflow-x: auto; 
             overflow-y: hidden; 
@@ -40,7 +70,6 @@
             max-width: 100%;
             overflow: hidden;
         }
-        /* Mobile hover fix: remove sticky hover effect */
         @media (hover: hover) {
             .chord-card:hover { border-color: #eab308; transform: translateY(-2px); transition: all 0.2s; }
         }
@@ -86,7 +115,7 @@
             border-radius: 4px; background-color: #334155; color: #e2e8f0; transition: background-color 0.2s;
             outline: none; -webkit-tap-highlight-color: transparent;
         }
-        .ctrl-btn:active { background-color: #475569; }
+        .ctrl-btn:active { background-color: #444; color: white; }
         
         .toggle-group { display: flex; align-items: center; background: #222; padding: 4px 8px; border-radius: 6px; border: 1px solid #333; height: 32px; }
         .toggle-label { font-size: 10px; color: #888; font-weight: bold; margin-right: 6px; text-transform: uppercase; white-space: nowrap; }
@@ -100,28 +129,60 @@
         /* === LANDSCAPE SIDEBAR LAYOUT === */
         @media (max-height: 600px) and (orientation: landscape) {
             header { 
-                position: fixed !important; left: 0 !important; top: 0 !important; bottom: 0 !important; 
-                width: 220px !important; overflow-y: auto !important; 
+                position: fixed !important; 
+                left: 0 !important; top: 0 !important; bottom: 0 !important; 
+                width: 220px !important; 
+                height: 100% !important; 
+                overflow-y: auto !important; 
+                overflow-x: hidden !important; 
                 border-bottom: none !important; border-right: 1px solid #333;
                 display: flex !important; flex-direction: column !important; 
-                padding: 12px 8px !important; background: #181818; z-index: 50;
+                padding: 12px 8px !important; 
+                background: #181818; z-index: 50;
                 padding-left: max(8px, env(safe-area-inset-left)) !important; 
             }
+
             main { 
                 margin-left: 220px !important; 
-                width: calc(100vw - 220px) !important; max-width: calc(100vw - 220px) !important;
+                width: calc(100vw - 220px) !important;
+                max-width: calc(100vw - 220px) !important;
                 padding: 8px !important; padding-top: 8px !important; 
                 padding-right: max(8px, env(safe-area-inset-right)) !important;
                 overflow-x: hidden !important; 
             }
+
             .header-container { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; width: 100% !important; }
             .title-area { width: 100%; justify-content: space-between; margin-bottom: 4px; }
             .title-text { font-size: 1.1rem !important; }
             .controls-area { flex-direction: column !important; align-items: stretch !important; width: 100% !important; gap: 8px !important; }
             .toggle-group { width: 100% !important; justify-content: space-between !important; }
-            #root-filters, #type-filters { flex-wrap: wrap !important; overflow-x: visible !important; white-space: normal !important; gap: 4px !important; padding: 0 !important; margin: 0 !important; border: none !important; }
+            
+            /* Sidebar Filter Layout */
+            #root-filters, #type-filters {
+                flex-wrap: wrap !important; 
+                overflow-x: visible !important; 
+                white-space: normal !important; 
+                gap: 4px !important; 
+                padding: 0 !important; margin: 0 !important; border: none !important;
+            }
             #type-filters { margin-top: 12px !important; border-top: 1px solid #333 !important; pt-3 !important; }
-            #root-filters button, #type-filters button { flex: 1 0 40px; margin-bottom: 4px; justify-content: center; }
+            
+            /* Default button size for sidebar */
+            #root-filters button, #type-filters button {
+                flex: 1 0 28%; /* 3 columns roughly */
+                margin-bottom: 4px; 
+                justify-content: center;
+            }
+            
+            /* Make ALL buttons full width in sidebar */
+            #root-filters button.btn-all, #type-filters button.btn-all {
+                flex: 1 0 100% !important;
+                margin-bottom: 8px !important;
+                background-color: #3b82f6 !important; /* Blue for emphasis */
+                color: white !important;
+                padding: 6px !important;
+            }
+            
             #chord-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
             footer { display: none !important; }
         }
@@ -129,7 +190,7 @@
 </head>
 <body>
 
-    <header class="bg-[#181818] sticky top-0 z-50 border-b border-[#333] shadow-xl pb-2">
+    <header class="bg-[#181818] border-b border-[#333] shadow-xl pb-2">
         <div class="max-w-7xl mx-auto px-4 pt-3 h-full">
             <div class="header-container flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
                 <div class="title-area flex items-center gap-3 flex-shrink-0">
@@ -180,7 +241,7 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6">
+    <main>
         <div id="chord-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6"></div>
         <div id="no-results" class="hidden text-center py-20 text-gray-500">No chords found.</div>
     </main>
@@ -190,9 +251,7 @@
     </footer>
 
     <script>
-        // ==========================================
-        // DATA CONSTANTS & LOGIC
-        // ==========================================
+        // Constants & Data
         const ROOT_VALUES = [
             { v:0, s:'C', f:'C' }, { v:1, s:'C#', f:'Db' }, { v:2, s:'D', f:'D' }, { v:3, s:'D#', f:'Eb' },
             { v:4, s:'E', f:'E' }, { v:5, s:'F', f:'F' }, { v:6, s:'F#', f:'Gb' }, { v:7, s:'G', f:'G' },
@@ -204,7 +263,6 @@
         const DEGREE_NAMES = ['R', 'b9', '2', 'm3', 'M3', '4', 'b5', '5', '#5', '6', 'b7', 'M7'];
         const TUNING_VALS = [4, 9, 2, 7, 11, 4];
         
-        // Drawing Constants
         const DRAW_NUT = 40;
         const DRAW_FW = 45;
         const SVG_VIEW_W = 740;
@@ -237,7 +295,13 @@
             ],
             'aug': [ { f: '3x344x', base: 7, n: 'aug (Root 6)', opts: { noBarre: true } }, { f: 'x3211x', base: 0, n: 'Caug Shape (5th Root)', opts: { noBarre: true } }, { f: 'xx0332', base: 2, n: 'Daug Shape (4th Root)', opts: { noBarre: true } } ],
             'aug7': [ { f: '2x233x', base: 6, n: 'aug7 (6str F# Form)', opts: { noBarre: true } }, { f: 'x3635x', base: 0, n: 'aug7 (5str C Form)', opts: { noBarre: false } } ],
-            'dim': [ { f: '2x121x', base: 6, n: 'dim7 (6str F# Form)', opts: { noBarre: true } }, { f: 'x1212x', base: 10, n: 'dim7 (5str Bb Form)', opts: { noBarre: true } }, { f: 'x12020', base: 10, n: 'dim7 (5str A# Form)' }, { f: 'x01212', base: 9, n: 'dim7 (5str Open)', opts: { noBarre: true } }, { f: 'xx1212', base: 3, n: 'dim7 (4str)', opts: { noBarre: true } } ],
+            'dim': [ 
+                { f: '2x121x', base: 6, n: 'dim7 (6str F# Form)', opts: { noBarre: true } }, 
+                { f: 'x1212x', base: 10, n: 'dim7 (5str Bb Form)', opts: { noBarre: true } }, 
+                { f: 'x12020', base: 10, n: 'dim7 (5str A# Form)' }, 
+                { f: 'x01212', base: 9, n: 'dim7 (5str Open)', opts: { noBarre: true } }, 
+                { f: 'xx1212', base: 3, n: 'dim7 (4str)', opts: { noBarre: true } } 
+            ],
             'm7-5': [ { f: '2x221x', base: 6, n: 'm7-5 (Root 6)' }, { f: 'x01013', base: 9, n: 'Am7-5 Shape' }, { f: 'xx0111', base: 2, n: 'Dm7-5 Shape' } ],
             'mM7': [ { f: '021000', base: 4, n: 'EmM7 Shape' }, { f: 'x02110', base: 9, n: 'AmM7 Shape' }, { f: 'xx0221', base: 2, n: 'DmM7 Shape' } ]
         };
@@ -440,7 +504,7 @@
             state.naming = mode;
             document.getElementById('btn-name-cde').className = `switch-btn ${mode==='cde'?'active':''}`;
             document.getElementById('btn-name-doremi').className = `switch-btn ${mode==='doremi'?'active':''}`;
-            updateAllCardLabels();
+            render(); 
         }
 
         function setDisplayMode(mode) {
@@ -448,35 +512,7 @@
             state.displayMode = mode;
             document.getElementById('btn-mode-note').className = `switch-btn ${mode==='note'?'active':''}`;
             document.getElementById('btn-mode-degree').className = `switch-btn ${mode==='degree'?'active':''}`;
-            updateAllCardLabels();
-        }
-
-        function updateAllCardLabels() {
-            // Find all note texts and update them without re-rendering everything
-            document.querySelectorAll('.chord-card').forEach(card => {
-                const rootVal = parseInt(card.getAttribute('data-root-val'));
-                const fStr = card.getAttribute('data-fstr');
-                const frets = parseFrets(fStr);
-                
-                // Find svg texts
-                const texts = card.querySelectorAll('.n-lbl');
-                texts.forEach((textEl, i) => {
-                    // We need to map visual index back to string index. 
-                    // drawBoard loops 0..5 (strings). 
-                    // But visual elements might be filtered if we skipped muted? 
-                    // Actually drawBoard draws 6 strings always.
-                    // But the loop in drawBoard creates circles/texts only if f != -1.
-                    // So simply re-running logic for active strings is safest.
-                    
-                    // Actually, simpler: re-render the SVG content for this card
-                    // But drawBoard is pure string return.
-                    // Let's just re-render the card body content or replace SVG.
-                    const newSvg = drawBoard(frets, rootVal, 'update', false); // id not used in string mode
-                    // Find scroll container
-                    const scroll = card.querySelector('.fretboard-scroll');
-                    scroll.innerHTML = newSvg;
-                });
-            });
+            render();
         }
 
         function playString(freq, time, toneType) {
@@ -589,6 +625,7 @@
                     const nVal = (TUNING_VALS[i] + f) % 12;
                     const deg = (nVal - rootVal + 12) % 12;
                     const isR = deg === 0;
+                    
                     let col = isR ? '#ef4444' : '#2563eb';
                     s += `<circle cx="${getX(f)}" cy="${y}" r="13" fill="${col}" stroke="white" stroke-width="1.5" class="note-circle"/>`;
                     
@@ -608,7 +645,6 @@
         }
 
         // --- Render UI ---
-        
         function createChordCard(key, title, pat, rootVal, data, idx, activePatterns, uid) {
             const noBarre = pat.opts && pat.opts.noBarre;
             const parsedFrets = parseFrets(pat.f);
@@ -620,13 +656,11 @@
             div.setAttribute('data-root-val', rootVal);
             div.setAttribute('data-fstr', pat.f);
 
-            // Controller
             let ctrl = `<div class="h-6 w-full mb-1"></div>`;
             if (activePatterns.length > 1) {
                  ctrl = `<div class="flex items-center w-full mb-1 bg-[#1a1a1a] rounded px-2 py-1 select-none border border-[#333]"><button onclick="chgVar('${key}', '${state.chordSelection[key]||'std'}', -1)" class="ctrl-btn text-xs">◀</button><span class="flex-1 text-center text-[10px] text-gray-400 font-mono font-bold">Var ${idx+1}/${activePatterns.length}</span><button onclick="chgVar('${key}', '${state.chordSelection[key]||'std'}', 1)" class="ctrl-btn text-xs">▶</button></div>`;
             }
 
-            // Buttons
             let uniqSlash = [];
             const seen = new Set();
             data.slash.forEach(s => { if(!seen.has(s.bass)) { seen.add(s.bass); uniqSlash.push(s); } });
@@ -654,7 +688,6 @@
             return div;
         }
 
-        // Center scroll logic with zoom factor
         function centerScroll(uid, parsedFrets) {
             requestAnimationFrame(() => {
                 const container = document.getElementById(`scroll-${uid}`);
@@ -665,24 +698,21 @@
                         const maxF = Math.max(...fretted);
                         const centerFret = (minF + maxF) / 2;
                         
-                        // Get current width of the SVG inside container to calculate ratio
-                        // If SVG is scaled, clientWidth will differ from 740
+                        // Use fixed calculation assuming standard scale
+                        const targetX = DRAW_NUT + centerFret * DRAW_FW;
+                        
+                        // Check if we need to adjust for actual SVG scale
                         const svgEl = container.querySelector('svg');
-                        const currentSvgWidth = svgEl ? svgEl.clientWidth : 740;
-                        const ratio = currentSvgWidth / SVG_VIEW_W;
-
-                        // Target in SVG coords
-                        const targetX_SVG = DRAW_NUT + centerFret * DRAW_FW;
-                        
-                        // Target in Pixels
-                        const targetX_PX = targetX_SVG * ratio;
-                        
-                        const containerW = container.clientWidth;
-                        
-                        if (centerFret > 3) {
-                            container.scrollLeft = targetX_PX - (containerW / 2);
-                        } else {
-                            container.scrollLeft = 0;
+                        if (svgEl) {
+                            const ratio = svgEl.clientWidth / SVG_VIEW_W; 
+                            const targetX_PX = targetX * ratio;
+                            const containerW = container.clientWidth;
+                            
+                            if (centerFret > 3) {
+                                container.scrollLeft = targetX_PX - (containerW / 2);
+                            } else {
+                                container.scrollLeft = 0;
+                            }
                         }
                     } else {
                         container.scrollLeft = 0;
@@ -697,15 +727,18 @@
             let c = 0;
             
             // Filters
-            let rh = `<button onclick="setR('ALL')" class="px-3 py-1.5 rounded-full text-sm font-bold whitespace-nowrap ${state.root==='ALL'?'bg-blue-600 text-white':'bg-[#333] text-gray-400'}">ALL</button>`;
+            let rh = `<button onclick="setR('ALL')" class="px-3 py-1.5 rounded-full text-sm font-bold whitespace-nowrap btn-all ${state.root==='ALL'?'bg-blue-600 text-white':'bg-[#333] text-gray-400'}">ALL</button>`;
             ROOT_VALUES.forEach(r => {
                 const name = (state.accidental === '#' ? r.s : r.f);
                 rh += `<button onclick="setR('${name}')" class="px-3 py-1.5 rounded-full text-sm font-bold whitespace-nowrap ${state.root===name?'bg-blue-600 text-white':'bg-[#333] text-gray-400'}">${name}</button>`;
             });
             document.getElementById('root-filters').innerHTML = rh;
 
-            let th = '';
-            TYPES.forEach(t => th += `<button onclick="setT('${t.id}')" class="px-3 py-1 rounded text-xs font-bold whitespace-nowrap ${state.type===t.id?'bg-slate-700 text-white':'text-slate-500'} border border-transparent ${state.type===t.id?'':'hover:border-slate-600'}">${t.name}</button>`);
+            let th = `<button onclick="setT('ALL')" class="px-3 py-1 rounded text-xs font-bold whitespace-nowrap btn-all ${state.type==='ALL'?'bg-slate-700 text-white':'text-slate-500'}">All</button>`;
+            TYPES.forEach(t => {
+                if(t.id==='ALL') return;
+                th += `<button onclick="setT('${t.id}')" class="px-3 py-1 rounded text-xs font-bold whitespace-nowrap ${state.type===t.id?'bg-slate-700 text-white':'text-slate-500'} border border-transparent ${state.type===t.id?'':'hover:border-slate-600'}">${t.name}</button>`;
+            });
             document.getElementById('type-filters').innerHTML = th;
 
             // Generation
@@ -735,7 +768,6 @@
                     const title = isS ? `${rootName}${type.suffix}<span class="text-yellow-500">/${sel}</span>` : `${rootName}${type.suffix}`;
                     const uid = key.replace('#','s').replace('/','_');
 
-                    // Create Card
                     const card = createChordCard(key, title, pat, r.v, data, idx, activePatterns, uid);
                     grid.appendChild(card);
                     
@@ -768,24 +800,18 @@
         };
 
         function updateSingleCard(key) {
-            // Re-render ONLY specific card
             const uid = key.replace('#','s').replace('/','_');
             const card = document.getElementById(`card-${uid}`);
             if(!card) return;
 
-            // Find data
-            const rootName = key.replace(/m7-5|mM7|add9|sus4|sus2|aug7|aug|dim|maj7|m7|m|7|$/, "");
-            // Reverse lookup root val? Or iterate roots
-            // Assuming we know key, we parse root. 
-            // Better: store rootVal in DOM.
+            const rootName = (state.accidental === '#' ? ROOT_VALUES.find(r=>r.s === key.replace(/m7-5|mM7|add9|sus4|sus2|aug7|aug|dim|maj7|m7|m|7|$/, "")).s : ROOT_VALUES.find(r=>r.f === key.replace(/m7-5|mM7|add9|sus4|sus2|aug7|aug|dim|maj7|m7|m|7|$/, "")).f);
             const rVal = parseInt(card.getAttribute('data-root-val'));
             
-            // Get Type suffix to rebuild title
-            // A bit hacky to reverse engineer title from key string, but doable.
-            // We can just find the Type ID from TYPES array
-            // Type ID is key minus rootName
+            let typeObj = TYPES[1]; 
             const typeId = key.substring(rootName.length);
-            const typeObj = TYPES.find(t => t.id === typeId);
+            const foundType = TYPES.find(t => t.id === typeId);
+            if(foundType) typeObj = foundType;
+
             const data = CHORD_DB[key];
             const sel = state.chordSelection[key] || 'std';
             
@@ -800,7 +826,6 @@
             const isS = (sel !== 'std');
             const title = isS ? `${rootName}${typeObj.suffix}<span class="text-yellow-500">/${sel}</span>` : `${rootName}${typeObj.suffix}`;
 
-            // Create new content
             const newCard = createChordCard(key, title, pat, rVal, data, idx, activePatterns, uid);
             card.replaceWith(newCard);
             centerScroll(uid, parseFrets(pat.f));
@@ -809,17 +834,9 @@
         window.toggleDisplayMode = m => {
             if(state.displayMode===m) return;
             state.displayMode=m;
-            updateAllCardLabels(); // defined previously but now missing from this snippet?
-            // Re-implement simplified update
             document.getElementById('btn-mode-note').className = `switch-btn ${m==='note'?'active':''}`;
             document.getElementById('btn-mode-degree').className = `switch-btn ${m==='degree'?'active':''}`;
-            
-            // Re-render SVG text only
-            document.querySelectorAll('.chord-card').forEach(c => {
-                // To keep it simple, just trigger full render or per-card update?
-                // Full render is fine for global toggle
-                render(); 
-            });
+            document.querySelectorAll('.chord-card').forEach(c => { render(); });
         };
 
         generateAll();
