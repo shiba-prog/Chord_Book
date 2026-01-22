@@ -2,79 +2,26 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Guitar Chord Book</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ギターコード図鑑 v75 - Strict Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- Core Layout Stability Fixes --- */
-        html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden; 
-            overscroll-behavior-x: none; 
-            font-family: 'Helvetica Neue', Arial, sans-serif; 
-            background-color: #121212; 
-            color: #e2e8f0; 
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Portrait Sticky Header */
-        header {
-            width: 100%;
-            left: 0;
-            right: 0;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
-
-        /* Main Content */
-        main {
-            width: 100%;
-            max-width: 80rem; 
-            margin-left: auto;
-            margin-right: auto;
-            padding: 1rem 1rem 2rem 1rem;
-            overflow-x: hidden; 
-        }
-
-        /* --- Components --- */
-        .fretboard-scroll { 
-            overflow-x: auto; 
-            overflow-y: hidden; 
-            padding-bottom: 4px; 
-            border-radius: 0 0 8px 8px;
-            scroll-behavior: smooth; 
-            -webkit-overflow-scrolling: touch;
-            width: 100%;
-            max-width: 100%; 
-            position: relative;
-        }
-        .fretboard-scroll::-webkit-scrollbar { height: 6px; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #121212; color: #e2e8f0; }
+        
+        .fretboard-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; border-radius: 0 0 8px 8px; scroll-behavior: smooth; }
+        .fretboard-scroll::-webkit-scrollbar { height: 10px; }
         .fretboard-scroll::-webkit-scrollbar-track { background: #2d2d2d; }
-        .fretboard-scroll::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
-
-        .fretboard-svg {
-            height: auto;
-            min-width: 580px; 
-            display: block;
-        }
+        .fretboard-scroll::-webkit-scrollbar-thumb { background: #555; border-radius: 5px; }
 
         .chord-card { 
             background: linear-gradient(145deg, #1e1e1e, #181818);
             border: 1px solid #333; 
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            transition: border-color 0.2s; 
+            transition: border-color 0.2s, transform 0.2s; 
             display: flex; flex-direction: column; 
-            max-width: 100%;
-            overflow: hidden;
         }
-        @media (hover: hover) {
-            .chord-card:hover { border-color: #eab308; transform: translateY(-2px); transition: all 0.2s; }
-        }
+        .chord-card:hover { border-color: #eab308; transform: translateY(-2px); }
 
         .svg-text { font-family: sans-serif; font-weight: 800; pointer-events: none; text-anchor: middle; dominant-baseline: central; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
         .note-circle { transition: fill 0.2s; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6)); }
@@ -83,260 +30,401 @@
 
         .fretboard-bg { fill: #3e2723; } 
         .fret-wire { stroke: #c0c0c0; stroke-linecap: round; }
-        .string-wound { stroke: #d4a017; opacity: 0.9; }
-        .string-plain { stroke: #e0e0e0; opacity: 0.8; }
+        .string-wound { stroke: #d4a017; }
+        .string-plain { stroke: #e0e0e0; }
         .inlay { fill: #fdf5e6; opacity: 0.6; }
-        .string-muted { opacity: 0.25; stroke: #444; }
 
-        .bass-btn, .std-btn {
+        .bass-btn {
             font-size: 11px; font-weight: bold; padding: 6px 4px; margin: 2px;
             border-radius: 4px; border: 1px solid #444;
             background: linear-gradient(to bottom, #333, #222);
             color: #aaa; cursor: pointer; text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-            outline: none; -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4); flex: 1; min-width: 32px;
         }
-        .bass-btn { flex: 1; min-width: 32px; }
-        .std-btn { width: 100%; padding: 6px 12px; }
-        .bass-btn:active, .std-btn:active, .bass-btn.active, .std-btn.active { 
-            background: linear-gradient(to bottom, #3b82f6, #2563eb); color: white; border-color: #60a5fa; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); 
+        .bass-btn:hover { background: linear-gradient(to bottom, #444, #333); color: white; border-color: #666; }
+        .bass-btn.active { background: linear-gradient(to bottom, #f59e0b, #d97706); color: #fff; border-color: #fbbf24; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+        
+        .all-btn {
+            min-width: 44px !important;
+            max-width: 44px !important;
+            flex: none !important;
+        }
+
+        .std-sel-btn {
+            font-size: 13px !important;
+            padding: 8px 20px !important;
+            min-width: 80px !important;
+            flex: none !important;
+            border-color: #555 !important;
         }
 
         .play-btn {
             background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
-            color: white; border-radius: 50%; width: 36px; height: 36px;
+            color: white; border-radius: 50%; width: 40px; height: 40px;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
-            cursor: pointer; border: 1px solid #1e40af; margin-left: 8px; font-size: 18px; flex-shrink: 0;
-            outline: none; -webkit-tap-highlight-color: transparent;
+            cursor: pointer; border: 1px solid #1e40af; margin-left: 12px; font-size: 20px;
         }
+        .play-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
         .play-btn:active { transform: scale(0.95); box-shadow: inset 0 3px 5px rgba(0,0,0,0.3); }
 
-        .ctrl-btn { 
-            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; 
-            border-radius: 4px; background-color: #334155; color: #e2e8f0; transition: background-color 0.2s;
-            outline: none; -webkit-tap-highlight-color: transparent;
+        .omit-badge {
+            font-size: 10px;
+            background-color: rgba(71, 85, 105, 0.4);
+            color: #cbd5e1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            margin-left: 8px;
+            white-space: nowrap;
         }
-        .ctrl-btn:active { background-color: #444; color: white; }
-        
-        .toggle-group { display: flex; align-items: center; background: #222; padding: 4px 8px; border-radius: 6px; border: 1px solid #333; height: 32px; }
-        .toggle-label { font-size: 10px; color: #888; font-weight: bold; margin-right: 6px; text-transform: uppercase; white-space: nowrap; }
-        .switch-btn { 
-            font-size: 11px; font-weight: bold; color: #666; padding: 2px 8px; cursor: pointer; transition: all 0.2s; border-radius: 4px; display: flex; align-items: center; height: 20px;
-            outline: none; -webkit-tap-highlight-color: transparent;
+        .omit-badge.warning {
+            background-color: rgba(127, 29, 29, 0.4);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.5);
+            font-weight: bold;
         }
-        .switch-btn.active { background-color: #444; color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-        select.tone-select { background-color: #222; color: #eee; border: 1px solid #444; font-size: 11px; padding: 0 4px; border-radius: 4px; outline: none; cursor: pointer; height: 22px; }
 
-        /* === LANDSCAPE SIDEBAR LAYOUT === */
-        @media (max-height: 600px) and (orientation: landscape) {
-            header { 
-                position: fixed !important; 
-                left: 0 !important; top: 0 !important; bottom: 0 !important; 
-                width: 220px !important; 
-                height: 100% !important; 
-                overflow-y: auto !important; 
-                overflow-x: hidden !important; 
-                border-bottom: none !important; border-right: 1px solid #333;
-                display: flex !important; flex-direction: column !important; 
-                padding: 12px 8px !important; 
-                background: #181818; z-index: 50;
-                margin: 0 !important; /* Ensure no margin shift */
-                
-                /* Safe area handling */
-                padding-left: max(8px, env(safe-area-inset-left)) !important; 
-            }
-
-            main { 
-                margin-left: 220px !important; 
-                width: calc(100vw - 220px) !important;
-                max-width: calc(100vw - 220px) !important;
-                padding: 8px !important; padding-top: 8px !important; 
-                padding-right: max(8px, env(safe-area-inset-right)) !important;
-                overflow-x: hidden !important; 
-            }
-
-            .header-container { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; width: 100% !important; }
-            .title-area { width: 100%; justify-content: space-between; margin-bottom: 4px; }
-            .title-text { font-size: 1.1rem !important; }
-            .controls-area { flex-direction: column !important; align-items: stretch !important; width: 100% !important; gap: 8px !important; }
-            .toggle-group { width: 100% !important; justify-content: space-between !important; }
-            
-            /* Sidebar Filter Layout */
-            #root-filters, #type-filters {
-                flex-wrap: wrap !important; 
-                overflow-x: visible !important; 
-                white-space: normal !important; 
-                gap: 4px !important; 
-                padding: 0 !important; margin: 0 !important; border: none !important;
-            }
-            #type-filters { margin-top: 12px !important; border-top: 1px solid #333 !important; pt-3 !important; }
-            
-            /* Default button size for sidebar */
-            #root-filters button, #type-filters button {
-                flex: 1 0 28%; /* 3 columns roughly */
-                margin-bottom: 4px; 
-                justify-content: center;
-            }
-            
-            /* Styles for ALL buttons in sidebar - REMOVED FIXED COLOR */
-            #root-filters button.btn-all, #type-filters button.btn-all {
-                flex: 1 0 100% !important;
-                margin-bottom: 8px !important;
-                padding: 6px !important;
-            }
-            
-            #chord-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
-            footer { display: none !important; }
-        }
+        select.tone-select { background-color: #222; color: #eee; border: 1px solid #444; font-size: 12px; padding: 6px 10px; border-radius: 6px; outline: none; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <header class="bg-[#181818] border-b border-[#333] shadow-xl pb-2">
-        <div class="max-w-7xl mx-auto px-4 pt-3 h-full">
-            <div class="header-container flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
-                <div class="title-area flex items-center gap-3 flex-shrink-0">
-                    <h1 class="title-text text-2xl font-bold text-white tracking-wider flex items-center gap-2">
-                        <span class="text-yellow-500">🎸</span> 
-                        <span class="text-gray-200">Chord Book</span>
+    <header class="bg-[#181818] sticky top-0 z-50 border-b border-[#333] shadow-xl pb-2">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-2xl font-bold text-white tracking-wider flex items-center gap-2">
+                        <span class="text-yellow-500 text-3xl">🎸</span> 
+                        <span class="text-gray-200">Chord Book <span class="text-xs font-sans font-normal text-gray-500 ml-1">v75</span></span>
                     </h1>
-                    <div id="status-msg" class="status-badge text-xs text-gray-400 bg-[#2a2a2a] px-3 py-1 rounded border border-[#444]">Ready</div>
+                    <div id="status-msg" class="text-xs text-gray-400 bg-[#2a2a2a] px-3 py-1 rounded border border-[#444]">Ready</div>
                 </div>
-                
-                <div class="controls-area flex flex-wrap items-center gap-3">
-                    <div class="toggle-group">
-                        <span class="toggle-label">Sound</span>
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex items-center gap-2 bg-[#222] p-1.5 rounded-lg border border-[#333]">
+                        <span class="text-[10px] text-gray-500 font-bold uppercase ml-2 mr-1">Sound</span>
                         <select id="tone-selector" class="tone-select" onchange="setGuitarTone(this.value)">
                             <option value="acoustic">Acoustic</option>
-                            <option value="nylon">Classic</option>
-                            <option value="clean">Clean</option>
-                            <option value="drive">Drive</option>
+                            <option value="nylon">Classical</option>
+                            <option value="clean">Elec (Clean)</option>
+                            <option value="drive">Elec (Drive)</option>
                         </select>
                     </div>
-                    <div class="toggle-group">
-                        <span class="toggle-label">Root</span>
-                        <div class="flex bg-[#111] rounded p-0.5">
-                            <div id="btn-root-sharp" onclick="setRootAccidental('#')" class="switch-btn active">#</div>
-                            <div id="btn-root-flat" onclick="setRootAccidental('b')" class="switch-btn">b</div>
-                        </div>
-                    </div>
-                    <div class="toggle-group">
-                        <span class="toggle-label">Name</span>
-                        <div class="flex bg-[#111] rounded p-0.5">
-                            <div id="btn-name-cde" onclick="setNoteNaming('cde')" class="switch-btn active">CDE</div>
-                            <div id="btn-name-doremi" onclick="setNoteNaming('doremi')" class="switch-btn">ドレミ</div>
-                        </div>
-                    </div>
-                    <div class="toggle-group">
-                        <span class="toggle-label">View</span>
-                        <div class="flex bg-[#111] rounded p-0.5">
-                            <div id="btn-mode-note" onclick="setDisplayMode('note')" class="switch-btn active">Note</div>
-                            <div id="btn-mode-degree" onclick="setDisplayMode('degree')" class="switch-btn">Deg</div>
-                        </div>
+                    <div class="flex items-center bg-[#222] rounded-lg p-1 border border-[#333] shadow-inner">
+                        <button onclick="toggleDisplayMode('note')" id="btn-note" class="px-4 py-1.5 rounded text-xs font-bold transition-all bg-blue-600 text-white shadow">音名</button>
+                        <button onclick="toggleDisplayMode('degree')" id="btn-degree" class="px-4 py-1.5 rounded text-xs font-bold transition-all text-gray-400 hover:text-white">度数</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Filters -->
-            <div id="root-filters" class="flex overflow-x-auto gap-1.5 pb-2 scrollbar-hide mb-1"></div>
-            <div id="type-filters" class="flex gap-1.5 pb-2 overflow-x-auto scrollbar-hide border-t border-[#333] pt-2"></div>
+            <div id="root-filters" class="flex overflow-x-auto gap-2 pb-2 scrollbar-hide mb-1"></div>
+            <div id="type-filters" class="flex gap-2 pb-2 overflow-x-auto scrollbar-hide border-t border-[#333] pt-2"></div>
         </div>
     </header>
 
-    <main>
+    <main class="max-w-7xl mx-auto px-4 py-8">
         <div id="chord-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6"></div>
         <div id="no-results" class="hidden text-center py-20 text-gray-500">No chords found.</div>
     </main>
 
     <footer class="text-center py-12 text-xs text-gray-600 border-t border-[#333] mt-8 bg-[#181818]">
-        Guitar Chord Book
+        Guitar Chord Book v75 - Strict 69 & Dim Fix
     </footer>
 
     <script>
-        // ==========================================
-        // 1. DATA CONSTANTS
-        // ==========================================
-        const ROOT_VALUES = [
-            { v:0, s:'C', f:'C' }, { v:1, s:'C#', f:'Db' }, { v:2, s:'D', f:'D' }, { v:3, s:'D#', f:'Eb' },
-            { v:4, s:'E', f:'E' }, { v:5, s:'F', f:'F' }, { v:6, s:'F#', f:'Gb' }, { v:7, s:'G', f:'G' },
-            { v:8, s:'G#', f:'Ab' }, { v:9, s:'A', f:'A' }, { v:10, s:'A#', f:'Bb' }, { v:11, s:'B', f:'B' }
+        const ROOTS = [
+            { name: 'C', val: 0 }, { name: 'Db', val: 1 }, { name: 'D', val: 2 },
+            { name: 'Eb', val: 3 }, { name: 'E', val: 4 }, { name: 'F', val: 5 },
+            { name: 'Gb', val: 6 }, { name: 'G', val: 7 }, { name: 'Ab', val: 8 },
+            { name: 'A', val: 9 }, { name: 'Bb', val: 10 }, { name: 'B', val: 11 }
         ];
-        const KEY_PREFERENCE = { 0:'b', 1:'x', 2:'#', 3:'x', 4:'#', 5:'b', 6:'x', 7:'#', 8:'x', 9:'#', 10:'x', 11:'#' };
-        const NOTE_DEFS = { '#': ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], 'b': ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'] };
-        const DOREMI_DEFS = { '#': ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'], 'b': ['ド', 'レ♭', 'レ', 'ミ♭', 'ミ', 'ファ', 'ソ♭', 'ソ', 'ラ♭', 'ラ', 'シ♭', 'シ'] };
-        const DEGREE_NAMES = ['R', 'b9', '2', 'm3', 'M3', '4', 'b5', '5', '#5', '6', 'b7', 'M7'];
-        const TUNING_VALS = [4, 9, 2, 7, 11, 4];
-        
-        const DRAW_NUT = 40;
-        const DRAW_FW = 45;
-        const SVG_VIEW_W = 740;
 
         const TYPES = [
             { id: 'ALL', name: 'All', suffix: '' },
-            { id: '', name: 'Major', suffix: '' }, { id: 'm', name: 'Minor', suffix: 'm' }, { id: '7', name: '7th', suffix: '7' },
-            { id: 'm7', name: 'm7', suffix: 'm7' }, { id: 'maj7', name: 'Maj7', suffix: 'maj7' }, 
-            { id: 'sus4', name: 'sus4', suffix: 'sus4' }, { id: 'sus2', name: 'sus2', suffix: 'sus2' },
+            { id: '', name: 'Major', suffix: '' }, { id: 'm', name: 'Minor', suffix: 'm' }, 
+            { id: '7', name: '7th', suffix: '7' }, { id: 'm7', name: 'm7', suffix: 'm7' }, { id: 'maj7', name: 'Maj7', suffix: 'maj7' },
+            { id: 'sus4', name: 'sus4', suffix: 'sus4' }, 
+            { id: '7sus4', name: '7sus4', suffix: '7sus4' },
+            { id: 'sus2', name: 'sus2', suffix: 'sus2' },
             { id: 'add9', name: 'add9', suffix: 'add9' }, 
+            { id: 'm9', name: 'm7(9)', suffix: 'm7(9)' }, 
+            { id: '9', name: '9', suffix: '9' }, 
+            { id: '7b9', name: '7(b9)', suffix: '7(b9)' }, 
+            { id: 'maj9', name: 'maj9', suffix: 'maj9' },
+            { id: '11', name: '11', suffix: '11' },
+            { id: 'm11', name: 'm11', suffix: 'm11' }, 
+            { id: '7s11', name: '7(#11)', suffix: '7(#11)' }, 
+            { id: '9s11', name: '9(#11)', suffix: '9(#11)' }, 
+            { id: 'maj7s11', name: 'maj7(#11)', suffix: 'maj7(#11)' }, 
+            { id: 'add11', name: 'add11', suffix: 'add11' }, 
+            { id: '7s9', name: '7(#9)', suffix: '7(#9)' },
+            { id: '13', name: '7(13)', suffix: '7(13)' }, 
+            { id: 'maj13', name: 'maj7(13)', suffix: 'maj7(13)' }, 
+            { id: '7b13', name: '7(b13)', suffix: '7(b13)' }, 
             { id: 'aug', name: 'aug', suffix: 'aug' },
-            { id: 'aug7', name: 'aug7', suffix: 'aug7' }, 
-            { id: 'dim', name: 'dim', suffix: 'dim' }, 
-            { id: 'm7-5', name: 'm7-5', suffix: 'm7-5' }, 
-            { id: 'mM7', name: 'mM7', suffix: 'mM7' }
+            { id: 'aug7', name: 'aug7', suffix: 'aug7' },
+            { id: 'dim', name: 'dim', suffix: 'dim' }, { id: 'dim7', name: 'dim7', suffix: 'dim7' },
+            { id: 'm7-5', name: 'm7-5', suffix: 'm7-5' }, { id: 'mM7', name: 'mM7', suffix: 'mM7' },
+            { id: '6', name: '6', suffix: '6' }, { id: 'm6', name: 'm6', suffix: 'm6' },
+            { id: '69', name: '69', suffix: '69' }
         ];
+
+        // Definitive Formula List
+        const CHORD_FORMULAS = {
+            '': ['R', 'M3', '5'], 
+            'm': ['R', 'm3', '5'],
+            '7': ['R', 'M3', '5', 'b7'],
+            'm7': ['R', 'm3', '5', 'b7'],
+            'maj7': ['R', 'M3', '5', 'M7'],
+            'sus4': ['R', '4', '5'],
+            '7sus4': ['R', '4', '5', 'b7'],
+            'sus2': ['R', '2', '5'],
+            'add9': ['R', 'M3', '5', '9'],
+            'm9': ['R', 'm3', '5', 'b7', '9'],
+            '9': ['R', 'M3', '5', 'b7', '9'],
+            '7b9': ['R', 'M3', '5', 'b7', 'b9'],
+            'maj9': ['R', 'M3', '5', 'M7', '9'],
+            '11': ['R', 'b7', '11'], 
+            'm11': ['R', 'm3', '5', 'b7', '11'],
+            '7s11': ['R', 'M3', '5', 'b7', '#11'],
+            '9s11': ['R', 'M3', '5', 'b7', '9', '#11'],
+            'maj7s11': ['R', 'M3', '5', 'M7', '#11'],
+            'add11': ['R', 'M3', '5', '11'],
+            '7s9': ['R', 'M3', '5', 'b7', '#9'],
+            '13': ['R', 'M3', '5', 'b7', '13'], 
+            'maj13': ['R', 'M3', '5', 'M7', '13'], 
+            '7b13': ['R', 'M3', '5', 'b7', 'b13'],
+            'aug': ['R', 'M3', '#5'],
+            'aug7': ['R', 'M3', '#5', 'b7'],
+            'dim': ['R', 'm3', 'b5'], 
+            'dim7': ['R', 'm3', 'b5', 'bb7'],
+            'm7-5': ['R', 'm3', 'b5', 'b7'],
+            'mM7': ['R', 'm3', '5', 'M7'],
+            '6': ['R', 'M3', '5', '6'],
+            'm6': ['R', 'm3', '5', '6'],
+            '69': ['R', 'M3', '5', '6', '9']
+        };
+
+        // CHORD_SPECS: Forbidden checks
+        const CHORD_SPECS = {
+            '': { req: ['R', 'M3'], ban: ['m3'] },
+            'm': { req: ['R', 'm3'], ban: ['M3'] },
+            '7': { req: ['R', 'M3', 'b7'], ban: ['m3', 'M7'] },
+            'm7': { req: ['R', 'm3', 'b7'], ban: ['M3', 'M7'] },
+            'maj7': { req: ['R', 'M3', 'M7'], ban: ['m3', 'b7'] },
+            'sus4': { req: ['R', '4', '5'], ban: ['m3', 'M3'] },
+            '7sus4': { req: ['R', '4', 'b7'], ban: ['m3', 'M3'] },
+            'sus2': { req: ['R', '2', '5'], ban: ['m3', 'M3'] },
+            'add9': { req: ['R', 'M3', '9'], ban: ['m3', 'b7', 'M7'] },
+            'm9': { req: ['R', 'm3', 'b7', '9'], ban: ['M3'] },
+            '9': { req: ['R', 'M3', 'b7', '9'], ban: ['m3'] },
+            '7b9': { req: ['R', 'M3', 'b7', 'b9'], ban: ['m3'] },
+            'maj9': { req: ['R', 'M3', 'M7', '9'], ban: ['m3', 'b7'] },
+            '11': { req: ['R', 'b7', '11'], ban: ['M3', 'm3'] }, 
+            'm11': { req: ['R', 'm3', 'b7', '11'], ban: ['M3'] },
+            '7s11': { req: ['R', 'M3', 'b7', '#11'], ban: ['m3', '9'] }, 
+            '9s11': { req: ['R', 'M3', 'b7', '9', '#11'], ban: ['m3'] },
+            'maj7s11': { req: ['R', 'M3', 'M7', '#11'], ban: ['m3', 'b7'] },
+            'add11': { req: ['R', 'M3', '11'], ban: ['m3', 'b7', 'M7', '6'] }, 
+            '7s9': { req: ['R', 'M3', 'b7', '#9'], ban: [] }, 
+            '13': { req: ['R', 'M3', 'b7', '13'], ban: ['m3'] }, 
+            'maj13': { req: ['R', 'M3', 'M7', '13'], ban: ['m3', 'b7'] },
+            '7b13': { req: ['R', 'M3', 'b7', 'b13'], ban: ['m3'] },
+            'aug': { req: ['R', 'M3', '#5'], ban: ['m3', '5'] },
+            'aug7': { req: ['R', 'M3', '#5', 'b7'], ban: ['m3', '5'] },
+            'dim': { req: ['R', 'm3', 'b5'], ban: ['M3', '5', 'b7', 'M7', '6'] }, // Ban 6th/bb7 for triad
+            'dim7': { req: ['R', 'm3', 'b5', 'bb7'], ban: ['M3', '5', 'b7', 'M7'] },
+            'm7-5': { req: ['R', 'm3', 'b5', 'b7'], ban: ['M3', '5'] },
+            'mM7': { req: ['R', 'm3', 'M7'], ban: ['M3', 'b7'] },
+            '6': { req: ['R', 'M3', '6'], ban: ['m3', 'b7', 'M7'] },
+            'm6': { req: ['R', 'm3', '6'], ban: ['M3', 'b7', 'M7'] },
+            '69': { req: ['R', 'M3', '6', '9'], ban: ['m3', 'b7', 'M7', 'b5', '#11'] } // STRICT
+        };
+
+        const TUNING_VALS = [4, 9, 2, 7, 11, 4];
+        const DEGREE_NAMES = ['R', 'b9', '2', 'm3', 'M3', '4', 'b5', '5', '#5', '6', 'b7', 'M7'];
 
         const SHAPES = {
             '': [ { f: '022100', base: 4, n: 'E Shape' }, { f: 'x02220', base: 9, n: 'A Shape' }, { f: 'xx0232', base: 2, n: 'D Shape' } ],
             'm': [ { f: '022000', base: 4, n: 'Em Shape' }, { f: 'x02210', base: 9, n: 'Am Shape' }, { f: 'xx0231', base: 2, n: 'Dm Shape' } ],
-            '7': [ { f: '020100', base: 4, n: 'E7 Shape' }, { f: 'x02020', base: 9, n: 'A7 Shape' }, { f: 'xx0212', base: 2, n: 'D7 Shape' } ],
+            '7': [ { f: '020100', base: 4, n: 'E7 Shape' }, { f: 'x02020', base: 9, n: 'A7 Shape' }, { f: 'x32310', base: 0, n: 'C7 Shape' }, { f: 'xx0212', base: 2, n: 'D7 Shape' } ],
             'm7': [ { f: '020000', base: 4, n: 'Em7 Shape' }, { f: 'x02010', base: 9, n: 'Am7 Shape' }, { f: 'xx0211', base: 2, n: 'Dm7 Shape' } ],
             'maj7': [ { f: '021100', base: 4, n: 'Emaj7 Shape' }, { f: 'x02120', base: 9, n: 'Amaj7 Shape' }, { f: 'xx0222', base: 2, n: 'Dmaj7 Shape' } ],
-            'sus4': [ { f: '022200', base: 4, n: 'Esus4 Shape' }, { f: 'x02230', base: 9, n: 'Asus4 Shape' }, { f: 'xx0233', base: 2, n: 'Dsus4 Shape' } ],
+            'sus4': [ 
+                { f: '022200', base: 4, n: 'Esus4 Shape' }, 
+                { f: 'x02230', base: 9, n: 'Asus4 Shape' }, 
+                { f: 'xx0233', base: 2, n: 'Dsus4 Shape' },
+                { f: '3x0013', base: 7, n: 'Gsus4 Shape' }
+            ],
+            '7sus4': [
+                { f: 'x02030', base: 9, n: 'A7sus4 Shape' },
+                { f: '3x0211', base: 7, n: 'G7sus4 Shape' },
+                { f: 'xx0213', base: 2, n: 'D7sus4 Shape' }
+            ],
             'sus2': [ { f: 'x02200', base: 9, n: 'Asus2 Shape' }, { f: 'xx0230', base: 2, n: 'Dsus2 Shape' } ],
             'add9': [ 
                 { f: '022102', base: 4, n: 'Eadd9 Shape' }, 
-                { f: 'x3203x', base: 0, n: 'Cadd9 Shape (Movable)', opts: { noBarre: true } }, 
-                { f: 'x02420', base: 9, n: 'Aadd9 Shape (5str)', opts: { noBarre: true } } 
+                { f: 'x32030', base: 0, n: 'Cadd9 Shape' },
+                { f: 'xx3213', base: 5, n: 'Fadd9 Shape' }
             ],
-            'aug': [ { f: '3x344x', base: 7, n: 'aug (Root 6)', opts: { noBarre: true } }, { f: 'x3211x', base: 0, n: 'Caug Shape (5th Root)', opts: { noBarre: true } }, { f: 'xx0332', base: 2, n: 'Daug Shape (4th Root)', opts: { noBarre: true } } ],
-            'aug7': [ { f: '2x233x', base: 6, n: 'aug7 (6str F# Form)', opts: { noBarre: true } }, { f: 'x3635x', base: 0, n: 'aug7 (5str C Form)', opts: { noBarre: false } } ],
+            '9': [ 
+                { f: '020102', base: 4, n: 'E9 Shape' }, 
+                { f: 'x21222', base: 11, n: 'B9 Shape' }, 
+                { f: 'x3233x', base: 0, n: 'C9 Shape' } 
+            ],
+            '7b9': [ 
+                { f: 'x3232x', base: 0, n: 'C7(b9) Shape' }, 
+                { f: 'x02323', base: 9, n: 'A7(b9) Shape' },
+                { f: '020101', base: 4, n: 'E7(b9) Shape' }
+            ],
+            'm9': [ 
+                { f: '020002', base: 4, n: 'Em9 Shape' }, { f: 'x20222', base: 11, n: 'Bm9 Shape' },
+                { f: 'x2022x', base: 11, n: 'Bm9 Shape' },
+                { f: 'x3133x', base: 0, n: 'Cm9 Shape' } 
+            ], 
+            'maj9': [ 
+                { f: 'x3243x', base: 0, n: 'Cmaj9 Shape' }, { f: '021102', base: 4, n: 'Emaj9 Shape' },
+                { f: 'x30000', base: 0, n: 'Cmaj9 Open' }, 
+                { f: '3x0202', base: 7, n: 'Gmaj9 Open' }, 
+                { f: 'x8798x', base: 5, n: 'Fmaj9 Shell' }
+            ],
+            '11': [ 
+                { f: '3x3211', base: 7, n: 'G11 (F/G)' },
+                { f: 'x53553', base: 0, n: 'C11 (Bb/C)' },
+                { f: 'x00010', base: 2, n: 'D11 (C/D)' }
+            ],
+            'm11': [ 
+                { f: '000000', base: 4, n: 'Em11 Open' },
+                { f: 'x00010', base: 9, n: 'Am11 Open' },
+                { f: '3x331x', base: 7, n: 'Gm11 Shape' },
+                { f: '7x775x', base: 11, n: 'Bm11 Shape' }
+            ],
+            '7s11': [ // Pure 7#11 (No 9th)
+                { f: '2x231x', base: 6, n: 'F#7(#11) No9' }, 
+                { f: 'x3434x', base: 0, n: 'C7(#11) No9' },
+                { f: '1x120x', base: 5, n: 'F7(#11) No9' } 
+            ],
+            '9s11': [ // 9#11
+                { f: 'x32332', base: 0, n: 'C9(#11) Shape' },
+                { f: 'x54554', base: 2, n: 'D9(#11) Shape' }
+            ],
+            'maj7s11': [ 
+                { f: '133200', base: 5, n: 'Fmaj7(#11)' },
+                { f: 'x3244x', base: 0, n: 'Cmaj7(#11) Shell' },
+                { f: '8x997x', base: 0, n: 'Cmaj7(#11) High' }, 
+                { f: 'x02140', base: 9, n: 'Amaj7(#11)' }, 
+                { f: '2x331x', base: 6, n: 'F#maj7(#11)' }
+            ],
+            'add11': [ 
+                { f: 'x32011', base: 0, n: 'Cadd11 Shape' },
+                { f: '320013', base: 7, n: 'Gadd11 Shape' },
+                { f: '002100', base: 4, n: 'Eadd11 Open' } 
+            ],
+            '7s9': [ 
+                { f: '07678x', base: 4, n: 'Hendrix E Shape' }, 
+                { f: 'x3234x', base: 0, n: 'Hendrix C Shape' },
+                { f: '2122xx', base: 6, n: '6th Root (#9)' },
+                { f: '020103', base: 4, n: 'Open (#9)' }
+            ],
+            '13': [ 
+                { f: '3x3455', base: 7, n: 'G13 Rich' },
+                { f: '020120', base: 4, n: 'E13 Shape' },
+                { f: '2x234x', base: 6, n: 'F#13 Shape' } 
+            ], 
+            'maj13': [ 
+                { f: '3x445x', base: 7, n: 'Gmaj13 Shape' }, { f: '1x223x', base: 5, n: 'Fmaj13 Shape' }, { f: 'x13233', base: 10, n: 'Bbmaj13 Shape' },
+                { f: 'x02122', base: 9, n: 'Amaj13 Shape' }
+            ], 
+            '7b13': [ 
+                { f: '3x344x', base: 7, n: 'G7(b13) Shape', flags: ['nb'] }, { f: 'x13132', base: 10, n: 'Bb7(b13) Shape' },
+                { f: 'x02021', base: 9, n: 'A7(b13) Shape' } 
+            ],
+            'aug': [ 
+                { f: 'x3211x', base: 0, n: 'Caug Shape' }, { f: 'xx0332', base: 2, n: 'Daug Shape' },
+                { f: 'x0322x', base: 9, n: 'Aaug Shape' }, 
+                { f: 'xx2110', base: 4, n: 'Eaug Shape' }, 
+                { f: '32100x', base: 7, n: 'Gaug Shape' } 
+            ],
+            'aug7': [ 
+                { f: '0x0110', base: 4, n: 'Eaug7 Shape' }, 
+                { f: 'x03021', base: 9, n: 'Aaug7 Shape' }, 
+                { f: '2x233x', base: 6, n: 'F#aug7 Shape' },
+                { f: 'x32314', base: 0, n: 'Caug7 Open' }
+            ],
             'dim': [ 
-                { f: '2x121x', base: 6, n: 'dim7 (6str F# Form)', opts: { noBarre: true } }, 
-                { f: 'x1212x', base: 10, n: 'dim7 (5str Bb Form)', opts: { noBarre: true } }, 
-                { f: 'x12020', base: 10, n: 'dim7 (5str A# Form)' }, 
-                { f: 'x01212', base: 9, n: 'dim7 (5str Open)', opts: { noBarre: true } }, 
-                { f: 'xx1212', base: 3, n: 'dim7 (4str)', opts: { noBarre: true } } 
+                { f: 'xx0131', base: 2, n: 'Ddim Shape' }, 
+                { f: 'x0121x', base: 9, n: 'Adim Shape' } 
+            ], 
+            'dim7': [ 
+                { f: 'xx1212', base: 3, n: '4th Root' }, { f: 'x01212', base: 9, n: '5th Root' }, { f: '3x232x', base: 7, n: '6th Root' },
+                { f: 'x1202x', base: 10, n: 'Bbdim7 Shape' }
             ],
-            'm7-5': [ { f: '2x221x', base: 6, n: 'm7-5 (Root 6)' }, { f: 'x01013', base: 9, n: 'Am7-5 Shape' }, { f: 'xx0111', base: 2, n: 'Dm7-5 Shape' } ],
-            'mM7': [ { f: '021000', base: 4, n: 'EmM7 Shape' }, { f: 'x02110', base: 9, n: 'AmM7 Shape' }, { f: 'xx0221', base: 2, n: 'DmM7 Shape' } ]
+            'm7-5': [ 
+                { f: 'x01013', base: 9, n: 'Am7-5 Shape' }, 
+                { f: 'xx0111', base: 2, n: 'Dm7-5 Shape' }, 
+                { f: '2x221x', base: 6, n: 'F#m7-5 Shape' },
+                { f: 'x3434x', base: 0, n: 'Cm7-5 Shape' }
+            ],
+            'mM7': [ { f: 'x02110', base: 9, n: 'AmM7 Shape' }, { f: '021000', base: 4, n: 'EmM7 Shape' }, { f: 'xx0221', base: 2, n: 'DmM7 Shape' } ],
+            '6': [ 
+                { f: '022120', base: 4, n: 'E6 Shape' }, 
+                { f: 'x02222', base: 9, n: 'A6 Shape' }, 
+                { f: 'x32210', base: 0, n: 'C6 Shape' },
+                { f: '320000', base: 7, n: 'G6 Shape' }, 
+                { f: 'xx0202', base: 2, n: 'D6 Shape' }, 
+                { f: 'x1303x', base: 10, n: 'Bb6 Shape' } 
+            ],
+            'm6': [ 
+                { f: '022020', base: 4, n: 'Em6 Shape' }, { f: 'x02212', base: 9, n: 'Am6 Shape' },
+                { f: 'x2010x', base: 11, n: 'Bm6 Shape' }, 
+                { f: 'x1x021', base: 10, n: 'Bbm6 Shape' }, 
+                { f: '1x011x', base: 5, n: 'Fm6 Shape' } 
+            ],
+            '69': [
+                { f: '322200', base: 7, n: 'G69 Shape' },
+                { f: 'x32233', base: 0, n: 'C69 Shape' },
+                { f: '5444xx', base: 9, n: 'A69 Shape' } // Fixed A69
+            ]
         };
 
         const SLASH_TEMPLATES = {
-            '': [ { f: '002220', base: 9, bassInterval: 7, n: '/5 (A-form)' }, { f: '4x2100', base: 4, bassInterval: 4, n: '/3 (E-form)' }, { f: '200232', base: 2, bassInterval: 4, n: '/3 (D-form)' } ],
-            'm': [ { f: '302210', base: 9, bassInterval: 10, n: '/b7 (Am/G)' }, { f: '2x2210', base: 9, bassInterval: 9, n: '/6 (Am/F#)' }, { f: '322000', base: 4, bassInterval: 3, n: '/b3 (Em/G)' } ],
-            '7': [ { f: '200212', base: 2, bassInterval: 4, n: '/3 (D7/F#)' }, { f: '002020', base: 9, bassInterval: 7, n: '/5 (A7/E)' } ],
-            'm7': [ { f: '302010', base: 9, bassInterval: 10, n: '/b7 (Am7/G)' } ],
-            'maj7': [ { f: '332000', base: 0, bassInterval: 7, n: '/5 (Cmaj7/G)' } ]
+            '': [ 
+                { f: '022100', base: 9, bassInterval: 7, n: '/5 (A-form)' }, 
+                { f: '022100', base: 4, bassInterval: 4, n: '/3 (E-form)' }, 
+                { f: '2x0232', base: 2, bassInterval: 4, n: '/3 (D-form)' }
+            ],
+            'm': [ 
+                { f: '3x2210', base: 9, bassInterval: 10, n: '/b7 (Am/G)' },
+                { f: '2x2210', base: 9, bassInterval: 9, n: '/6 (Am/F#)' },
+                { f: '322000', base: 4, bassInterval: 3, n: '/b3 (Em/G)' }
+            ],
+            '7': [
+                 { f: '2x0212', base: 2, bassInterval: 4, n: '/3 (D7/F#)' },
+                 { f: '002020', base: 9, bassInterval: 7, n: '/5 (A7/E)' }
+            ],
+            'maj7': [
+                 { f: '332000', base: 0, bassInterval: 7, n: '/5 (Cmaj7/G)' }
+            ]
         };
 
         const MANUAL_OVERRIDES = {
-            'C': { std: [ {f:'x32010', n:'Open'}, {f:'x32013', n:'Open (High G)'} ], slash: [{b:'E', f:'032010'}, {b:'G', f:'332010'}, {b:'F', f:'132010'}] },
-            'Cadd9': { std: [ {f: 'x32030', n: 'Open'}, {f: 'x32033', n: 'Open (High G)'} ] }, 
-            'Aadd9': { std: [{f: 'x02420', n: 'Open'}] }, 
-            'G': { std: [{f:'320003', n:'Open'}, {f:'320033', n:'Pop'}], slash: [ {b:'B', f:'x20003'}, {b:'B', f:'x20033'}, {b:'Gb', f:'2x0003'}, {b:'D', f:'xx0003'} ] },
-            'D': { std: [{f:'xx0232', n:'Open'}], slash: [{b:'Gb', f:'200232'}, {b:'A', f:'x00232'}, {b:'C', f:'x30232'}] },
-            'Dm': { std: [{f:'xx0231', n:'Open'}] },
-            'A': { std: [{f:'x02220', n:'Open'}], slash: [{b:'G', f:'302220'}, {b:'Db', f:'x42220'}, {b:'E', f:'002220'}] },
-            'E': { std: [{f:'022100', n:'Open'}], slash: [{b:'Ab', f:'4x2100'}, {b:'B', f:'x22100'}, {b:'G', f:'322100'}] },
-            'Am': { slash: [{b:'G', f:'302210'}, {b:'Gb', f:'2x2210'}] },
-            'Em': { slash: [{b:'B', f:'x22000'}, {b:'D', f:'xx0000'}, {b:'Db', f:'x42000'}] },
+            'C': { std: [{f:'x32010', n:'Open'}], slash: [{b:'E', f:'032010'}, {b:'G', f:'332010'}, {b:'F', f:'132010'}] },
+            'G': { std: [{f:'320003', n:'Open'}, {f:'320033', n:'Pop'}], slash: [{b:'B', f:'x20003'}, {b:'F#', f:'2x0003'}, {b:'D', f:'xx0003'}] },
+            'D': { std: [{f:'xx0232', n:'Open'}], slash: [{b:'F#', f:'2x0232'}, {b:'A', f:'x00232'}, {b:'C', f:'x30232'}] },
+            'A': { std: [{f:'x02220', n:'Open'}], slash: [{b:'G', f:'3x2220'}, {b:'C#', f:'x42220'}, {b:'E', f:'002220'}] },
+            'E': { std: [{f:'022100', n:'Open'}], slash: [{b:'G#', f:'4x2100'}, {b:'B', f:'x22100'}, {b:'G', f:'322100'}] },
+            'Am': { slash: [{b:'G', f:'3x2210'}, {b:'F#', f:'2x2210'}] },
+            'Em': { slash: [{b:'B', f:'x22000'}, {b:'D', f:'xx0000'}, {b:'C#', f:'x42000'}] },
             'F': { std: [{f:'133211', n:'Barre'}], slash: [{b:'C', f:'133211'}, {b:'G', f:'3x3211'}] },
-            'Cmaj7': { slash: [{b:'B', f:'x22010'}] }
+            'Dm': { slash: [{b:'C', f:'x30231'}, {b:'B', f:'x20231'}, {b:'Bb', f:'x10231'}] },
+            'Cadd9': { std: [{f: 'x32030', n: 'Open'}] },
+            'Am7-5': { std: [{f: 'x0101x', n: 'Open'}] },
+            'Bbdim7': { std: [{f: 'x12020', n: 'Open'}] },
+            'Caug7': { std: [{f: 'x32314', n: 'Open Stretch'}] }
         };
 
         const CHORD_DB = {};
 
-        // --- Logic ---
         const parseFrets = (str) => {
             if(!str) return [-1,-1,-1,-1,-1,-1];
             return str.split('').map(c => {
@@ -353,189 +441,141 @@
             return n.toString();
         };
 
+        const getMinFret = (fStr) => {
+            const arr = parseFrets(fStr).filter(x=>x>0);
+            return arr.length ? Math.min(...arr) : 0;
+        };
+        const hasOpen = (fStr) => parseFrets(fStr).includes(0);
+
         const isPlayable = (frets) => {
-            const actives = frets.filter(f => f >= 0); 
-            if (actives.length === 0) return false; 
-            const fretted = frets.filter(f => f > 0);
-            if (fretted.length === 0) return true; 
-            if ((Math.max(...fretted) - Math.min(...fretted)) > 3) return false;
-            let fingerCount = 0;
-            const min = Math.min(...fretted);
+            const actives = frets.filter(f => f > 0);
+            if (actives.length === 0) return true;
+            if ((Math.max(...actives) - Math.min(...actives)) > 5) return false;
+            
+            const fretCounts = {};
+            actives.forEach(f => { fretCounts[f] = (fretCounts[f] || 0) + 1; });
+            const maxFretCount = Math.max(...Object.values(fretCounts));
+            
+            const min = Math.min(...actives);
             const countAtMin = frets.filter(f => f === min).length;
             let isBarre = (countAtMin >= 2 && !frets.includes(0));
+            
+            let fingerCount = 0;
             if (isBarre) {
                 fingerCount = 1; 
                 frets.forEach(f => { if(f > min) fingerCount++; });
+            } else if (maxFretCount >= 3 && !frets.includes(0)) {
+                const uniqueFrets = new Set(actives);
+                fingerCount = uniqueFrets.size;
             } else {
                 frets.forEach(f => { if(f > 0) fingerCount++; });
             }
             return fingerCount <= 4;
         };
 
-        let state = { 
-            root: 'ALL', type: 'ALL', chordSelection: {}, subIndices: {}, 
-            displayMode: 'note', tone: 'acoustic', accidental: '#', naming: 'cde'    
-        };
-
-        function getRootName(val) {
-            return state.accidental === '#' ? ROOT_VALUES[val].s : ROOT_VALUES[val].f;
-        }
-
-        function getNoteLabel(noteVal, rootVal) {
-            let pref = KEY_PREFERENCE[rootVal];
-            if (pref === 'x') pref = state.accidental; 
-            let names = (state.naming === 'doremi') ? DOREMI_DEFS[pref] : NOTE_DEFS[pref];
-            return names[noteVal];
+        function getDegrees(rootVal, fStr, typeId) {
+            const frets = parseFrets(fStr);
+            const degrees = new Set();
+            frets.forEach((f, i) => {
+                if (f !== -1) {
+                    const info = getLabel(rootVal, i, f, typeId);
+                    if (info) degrees.add(info.d);
+                }
+            });
+            return degrees;
         }
 
         function generateAll() {
-            for (let k in CHORD_DB) delete CHORD_DB[k];
-
-            ROOT_VALUES.forEach(r => {
-                const rootName = (state.accidental === '#' ? r.s : r.f);
-                
+            ROOTS.forEach(root => {
                 TYPES.forEach(type => {
                     if (type.id === 'ALL') return;
-                    const key = rootName + type.id;
-                    const list = [];
+                    const key = root.name + type.id;
+                    let list = [];
                     let slashList = [];
 
                     const tmpls = SHAPES[type.id] || [];
                     tmpls.forEach(tmpl => {
-                        let diff = (r.v - tmpl.base + 12) % 12;
+                        let diff = (root.val - tmpl.base + 12) % 12;
                         const baseFrets = parseFrets(tmpl.f);
                         const newFrets = baseFrets.map(f => f === -1 ? -1 : f + diff);
                         
                         if (Math.max(...newFrets) <= 14 && isPlayable(newFrets)) {
                             const fStr = newFrets.map(toHex).join('');
-                            let name = tmpl.n;
-                            if (diff === 0) name = "Open / Base";
-                            else if (Math.min(...newFrets.filter(f=>f>0)) > 0) name = "Barre";
-                            if(!list.some(x => x.f === fStr)) {
-                                list.push({ f: fStr, n: name, opts: tmpl.opts });
+                            const degs = getDegrees(root.val, fStr, type.id);
+                            const rules = CHORD_SPECS[type.id] || { req: [], ban: [] };
+                            const bans = rules.ban || [];
+                            const hasBanned = bans.some(b => degs.has(b));
+                            
+                            if (!hasBanned && !list.some(x => x.f === fStr)) {
+                                let name = tmpl.n;
+                                if (diff === 0) name = "Open / Base";
+                                else if (Math.min(...newFrets.filter(f=>f>0)) > 0) name = "Barre";
+                                list.push({ f: fStr, n: name, flags: tmpl.flags || [] });
                             }
                         }
                     });
 
-                    list.sort((a, b) => {
-                        const getMinFret = (fStr) => {
-                            const frets = parseFrets(fStr).filter(x => x > 0);
-                            return frets.length ? Math.min(...frets) : 0;
-                        };
-                        const hasOpen = (fStr) => parseFrets(fStr).includes(0);
-                        const aOpen = hasOpen(a.f); const bOpen = hasOpen(b.f);
-                        if (aOpen && !bOpen) return -1;
-                        if (!aOpen && bOpen) return 1;
-                        return getMinFret(a.f) - getMinFret(b.f);
-                    });
-
                     const slashTmpls = SLASH_TEMPLATES[type.id] || [];
                     slashTmpls.forEach(tmpl => {
-                         let diff = (r.v - tmpl.base + 12) % 12;
+                         let diff = (root.val - tmpl.base + 12) % 12;
                          const baseFrets = parseFrets(tmpl.f);
                          const newFrets = baseFrets.map(f => f === -1 ? -1 : f + diff);
                          
                          if (Math.max(...newFrets) <= 14 && isPlayable(newFrets)) {
                              const fStr = newFrets.map(toHex).join('');
-                             const bassVal = (r.v + tmpl.bassInterval) % 12;
-                             const bassName = (state.accidental==='#' ? ROOT_VALUES[bassVal].s : ROOT_VALUES[bassVal].f);
+                             const bassVal = (root.val + tmpl.bassInterval) % 12;
+                             const bassName = ROOTS.find(r => r.val === bassVal).name;
                              if(!slashList.some(x => x.bass === bassName && x.f === fStr)) {
-                                 slashList.push({ bass: bassName, f: fStr, opts: tmpl.opts });
+                                 slashList.push({ bass: bassName, f: fStr, flags: tmpl.flags || [] });
                              }
                          }
                     });
 
-                    let overrideKey = null;
-                    if (MANUAL_OVERRIDES[rootName + type.id]) overrideKey = rootName + type.id;
-                    else {
-                        const alias = (state.accidental==='#' ? r.f : r.s);
-                        if (MANUAL_OVERRIDES[alias + type.id]) overrideKey = alias + type.id;
-                    }
-
-                    if (overrideKey) {
-                        const ov = MANUAL_OVERRIDES[overrideKey];
-                        if (ov.std) {
-                            ov.std.forEach(m => {
+                    if (MANUAL_OVERRIDES[key]) {
+                        if (MANUAL_OVERRIDES[key].std) {
+                            MANUAL_OVERRIDES[key].std.forEach(m => {
                                 const idx = list.findIndex(x => x.f === m.f);
                                 if(idx > -1) list.splice(idx, 1);
+                                list.push({ ...m, flags: m.flags || [] });
                             });
-                            list.splice(0, 0, ...ov.std);
                         }
-                        if (ov.slash) {
-                            const formattedManual = ov.slash.map(m => {
-                                const bValObj = ROOT_VALUES.find(rv => rv.s === m.b || rv.f === m.b);
-                                const correctBass = bValObj ? (state.accidental==='#' ? bValObj.s : bValObj.f) : m.b;
-                                return { bass: correctBass, f: m.f };
-                            });
-                            slashList = slashList.filter(s => !formattedManual.some(m => m.bass === s.bass && m.f === s.f));
-                            slashList.splice(0, 0, ...formattedManual);
+                        if (MANUAL_OVERRIDES[key].slash) {
+                            const manualSlashes = MANUAL_OVERRIDES[key].slash;
+                            slashList = slashList.filter(s => !manualSlashes.some(m => m.b === s.bass && m.f === s.f));
+                            const formattedManual = manualSlashes.map(m => ({ bass: m.b, f: m.f, flags: m.flags || [] }));
+                            slashList = [...formattedManual, ...slashList];
                         }
                     }
+
+                    list.sort((a,b) => {
+                        const aOp = hasOpen(a.f), bOp = hasOpen(b.f);
+                        if(aOp && !bOp) return -1;
+                        if(!aOp && bOp) return 1;
+                        return getMinFret(a.f) - getMinFret(b.f);
+                    });
 
                     if (list.length === 0) list.push({ f: 'xxxxxx', n: 'No Data' });
                     CHORD_DB[key] = { std: list, slash: slashList };
                 });
             });
+            document.getElementById('status-msg').innerText = "Ready";
         }
 
-        // --- Audio & UI ---
         let audioCtx;
+        let state = { root: 'ALL', type: 'ALL', chordSelection: {}, stdIndices: {}, displayMode: 'note', tone: 'acoustic' };
 
         async function initAudio() {
-            if(!audioCtx) {
-                audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-            }
-            if(audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
+            if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+            if(audioCtx.state === 'suspended') await audioCtx.resume();
         }
         function setGuitarTone(tone) { state.tone = tone; }
-        
-        function setRootAccidental(mode) {
-            if(state.accidental === mode) return;
-            state.accidental = mode;
-            document.getElementById('btn-root-sharp').className = `switch-btn ${mode==='#'?'active':''}`;
-            document.getElementById('btn-root-flat').className = `switch-btn ${mode==='b'?'active':''}`;
-            if(state.root !== 'ALL') {
-                const curr = ROOT_VALUES.find(r => r.s === state.root || r.f === state.root);
-                if(curr) state.root = (mode==='#' ? curr.s : curr.f);
-            }
-            generateAll();
-            render();
-        }
-
-        function setNoteNaming(mode) {
-            if(state.naming === mode) return;
-            state.naming = mode;
-            document.getElementById('btn-name-cde').className = `switch-btn ${mode==='cde'?'active':''}`;
-            document.getElementById('btn-name-doremi').className = `switch-btn ${mode==='doremi'?'active':''}`;
-            updateAllCardLabels();
-        }
-
-        function setDisplayMode(mode) {
-            if(state.displayMode === mode) return;
-            state.displayMode = mode;
-            document.getElementById('btn-mode-note').className = `switch-btn ${mode==='note'?'active':''}`;
-            document.getElementById('btn-mode-degree').className = `switch-btn ${mode==='degree'?'active':''}`;
-            updateAllCardLabels();
-        }
-
-        function updateAllCardLabels() {
-            document.querySelectorAll('.chord-card').forEach(card => {
-                const rootVal = parseInt(card.getAttribute('data-root-val'));
-                const fStr = card.getAttribute('data-fstr');
-                const frets = parseFrets(fStr);
-                const newSvg = drawBoard(frets, rootVal, 'update', false);
-                const scroll = card.querySelector('.fretboard-scroll');
-                scroll.innerHTML = newSvg;
-            });
-        }
 
         function playString(freq, time, toneType) {
             const t = time;
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             const filter = audioCtx.createBiquadFilter();
+            
             const noiseBuffer = audioCtx.createBuffer(1, 100, audioCtx.sampleRate);
             const output = noiseBuffer.getChannelData(0);
             for (let i = 0; i < 100; i++) output[i] = Math.random() * 2 - 1;
@@ -562,7 +602,6 @@
                 osc.type = 'sawtooth';
                 filter.type = 'bandpass'; filter.frequency.setValueAtTime(1500, t);
                 filter.Q.value = 1.5; decay = 2.0; volume = 0.2;
-                noiseGain.gain.value = 0.05; 
             }
 
             osc.frequency.setValueAtTime(freq, t);
@@ -594,267 +633,233 @@
             });
         }
 
-        function drawBoard(frets, rootVal, id, noBarre = false) {
-            const W=740, H=200;
-            const getX = f => f===0 ? DRAW_NUT/2 : DRAW_NUT + (f*DRAW_FW) - (DRAW_FW/2);
-            const getY = s => 35 + ((5-s)*22);
+        function getLabel(rootVal, str, fret, typeId) {
+            if (fret === -1) return null;
+            const nVal = (TUNING_VALS[str] + fret) % 12;
+            const interval = (nVal - rootVal + 12) % 12;
+            const name = ROOTS[nVal].name;
 
-            let s = `<svg class="fretboard-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
-            s += `<rect x="${DRAW_NUT}" y="20" width="${W-DRAW_NUT-10}" height="135" class="fretboard-bg" rx="4"/>`;
-            s += `<line x1="${DRAW_NUT}" y1="20" x2="${DRAW_NUT}" y2="155" stroke="#999" stroke-width="6"/>`;
-
-            for(let f=1; f<=15; f++){
-                let x = DRAW_NUT + f*DRAW_FW;
-                s += `<line x1="${x}" y1="20" x2="${x}" y2="155" class="fret-wire" stroke-width="2"/>`;
-                if([3,5,7,9,15].includes(f)) s+= `<circle cx="${x-DRAW_FW/2}" cy="87.5" r="6" class="inlay"/>`;
-                if(f===12) { s+= `<circle cx="${x-DRAW_FW/2}" cy="60" r="6" class="inlay"/><circle cx="${x-DRAW_FW/2}" cy="115" r="6" class="inlay"/>`; }
-                if([1,3,5,7,9,12,15].includes(f)) s+= `<text class="fret-num" x="${x-DRAW_FW/2}" y="175">${f}</text>`;
-            }
-
-            for(let i=0; i<6; i++){
-                let y = getY(i);
-                let isMuted = (frets[i] === -1);
-                let cls = i<3 ? 'string-wound' : 'string-plain';
-                let clsAdd = isMuted ? ' string-muted' : '';
-                
-                s += `<line x1="${DRAW_NUT-10}" y1="${y}" x2="${W}" y2="${y}" class="${cls}${clsAdd}" stroke-width="${1+(1-i/5)}"/>`;
-            }
-
-            if (!noBarre) {
-                const acts = frets.filter(f=>f>0);
-                if(acts.length>=2 && !frets.includes(0)) {
-                    let min = Math.min(...acts);
-                    if(frets.filter(f=>f===min).length >= 2) {
-                        let sI = frets.findIndex(f=>f===min);
-                        let eI = 5 - [...frets].reverse().findIndex(f=>f===min);
-                        let y1 = getY(sI), y2 = getY(eI);
-                        s += `<rect x="${getX(min)-14}" y="${Math.min(y1,y2)-14}" width="28" height="${Math.abs(y1-y2)+28}" rx="14" fill="#3b82f6" fill-opacity="0.4" stroke="#2563eb"/>`;
-                    }
-                }
-            }
-
-            frets.forEach((f, i) => {
-                let y = getY(i);
-                if(f===-1) {
-                    s += `<text x="${DRAW_NUT/2}" y="${y}" class="mute-mark" font-size="16">×</text>`;
+            let degree = DEGREE_NAMES[interval];
+            
+            if (interval === 2) {
+                if (typeId === 'sus2') {
                 } else {
-                    const nVal = (TUNING_VALS[i] + f) % 12;
-                    const deg = (nVal - rootVal + 12) % 12;
-                    const isR = deg === 0;
-                    
-                    let col = isR ? '#ef4444' : '#2563eb';
-                    s += `<circle cx="${getX(f)}" cy="${y}" r="13" fill="${col}" stroke="white" stroke-width="1.5" class="note-circle"/>`;
-                    
-                    let txt = "";
-                    if(state.displayMode==='note') {
-                        txt = getNoteLabel(nVal, rootVal);
-                    } else {
-                        txt = DEGREE_NAMES[deg];
-                    }
-                    
-                    let fs = txt.length>2 ? 9 : 11;
-                    s += `<text class="svg-text n-lbl" x="${getX(f)}" y="${y}" fill="white" font-size="${fs}">${txt}</text>`;
+                    degree = '9';
                 }
-            });
-            s += `</svg>`;
-            return s;
-        }
+            }
+            if (typeId === '7s9' && interval === 3) degree = '#9';
+            if (typeId === '7b9' && interval === 1) degree = 'b9';
 
-        function createChordCard(key, title, pat, rootVal, data, idx, activePatterns, uid) {
-            const noBarre = pat.opts && pat.opts.noBarre;
-            const parsedFrets = parseFrets(pat.f);
-            const svg = drawBoard(parsedFrets, rootVal, uid, noBarre);
-
-            const div = document.createElement('div');
-            div.className = 'chord-card p-4 flex flex-col';
-            div.id = `card-${uid}`;
-            div.setAttribute('data-root-val', rootVal);
-            div.setAttribute('data-fstr', pat.f);
-
-            let ctrl = `<div class="h-6 w-full mb-1"></div>`;
-            if (activePatterns.length > 1) {
-                 ctrl = `<div class="flex items-center w-full mb-1 bg-[#1a1a1a] rounded px-2 py-1 select-none border border-[#333]"><button onclick="chgVar('${key}', '${state.chordSelection[key]||'std'}', -1)" class="ctrl-btn text-xs">◀</button><span class="flex-1 text-center text-[10px] text-gray-400 font-mono font-bold">Var ${idx+1}/${activePatterns.length}</span><button onclick="chgVar('${key}', '${state.chordSelection[key]||'std'}', 1)" class="ctrl-btn text-xs">▶</button></div>`;
+            if (typeId === 'dim7' && interval === 9) degree = 'bb7';
+            if (typeId.includes('13') && interval === 9) degree = '13';
+            if (typeId.includes('b13') && interval === 8) degree = 'b13';
+            if ((typeId === 'aug' || typeId === 'aug7') && interval === 8) degree = '#5';
+            if (typeId.includes('6') && interval === 9) degree = '6';
+            if (typeId === '69') {
+                if (interval === 2) degree = '9';
+                if (interval === 9) degree = '6';
+            }
+            if (typeId === '7sus4' && interval === 5) degree = '4';
+            
+            if (interval === 5) { 
+                if(typeId.includes('11') || typeId.includes('sus')) degree = (typeId.includes('sus') ? '4' : '11');
+            }
+            if (interval === 6) { 
+                if(typeId.includes('s11') || typeId.includes('#11')) degree = '#11';
+                else if(typeId.includes('-5') || typeId.includes('dim')) degree = 'b5';
             }
 
-            let uniqSlash = [];
-            const seen = new Set();
-            data.slash.forEach(s => { if(!seen.has(s.bass)) { seen.add(s.bass); uniqSlash.push(s); } });
-
-            let btns = '';
-            if(uniqSlash.length) {
-                btns += `<div class="mt-auto pt-2 flex flex-wrap gap-1 justify-center w-full">`;
-                const sel = state.chordSelection[key] || 'std';
-                btns += `<button onclick="selB('${key}','std')" class="std-btn ${sel==='std'?'active':''}">Standard</button>`;
-                uniqSlash.forEach(s => btns += `<button onclick="selB('${key}','${s.bass}')" class="bass-btn ${sel===s.bass?'active':''}">/${s.bass}</button>`);
-                btns += `</div>`;
-            } else btns += `<div class="mt-auto h-8"></div>`;
-
-            div.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <div class="flex-1">
-                        <h2 class="text-2xl font-bold text-white flex items-center gap-2">${title} <button class="play-btn" onclick="playChord('${pat.f}')">🔊</button></h2>
-                        <p class="text-[10px] text-gray-400 font-bold">${pat.n || (state.chordSelection[key]!=='std'?'On Chord':'Standard')}</p>
-                    </div>
-                    <div class="w-32">${ctrl}</div>
-                </div>
-                <div class="fretboard-scroll mb-1" id="scroll-${uid}">${svg}</div>
-                ${btns}
-            `;
-            return div;
+            return { n: name, d: degree, isR: interval===0 };
         }
 
-        function centerScroll(uid, parsedFrets) {
-            requestAnimationFrame(() => {
-                const container = document.getElementById(`scroll-${uid}`);
-                if (container) {
-                    const fretted = parsedFrets.filter(f => f > 0);
-                    if (fretted.length > 0) {
-                        const minF = Math.min(...fretted);
-                        const maxF = Math.max(...fretted);
-                        const centerFret = (minF + maxF) / 2;
-                        
-                        const svgEl = container.querySelector('svg');
-                        if (svgEl) {
-                            const ratio = svgEl.clientWidth / SVG_VIEW_W; 
-                            const targetX = DRAW_NUT + centerFret * DRAW_FW;
-                            const targetX_PX = targetX * ratio;
-                            const containerW = container.clientWidth;
-                            
-                            if (centerFret > 3) {
-                                container.scrollLeft = targetX_PX - (containerW / 2);
-                            } else {
-                                container.scrollLeft = 0;
-                            }
-                        }
-                    } else {
-                        container.scrollLeft = 0;
-                    }
+        function drawBoard(frets, rootVal, typeId, uid, flags = []) {
+            const W=740, H=200, nut=40, fW=45;
+            let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+            svg += `<rect x="${nut}" y="20" width="${W-nut-10}" height="135" class="fretboard-bg" rx="4"/>`;
+            svg += `<line x1="${nut}" y1="20" x2="${nut}" y2="155" stroke="#999" stroke-width="6"/>`;
+            for(let f=1; f<=15; f++){
+                let x = nut + f*fW;
+                svg += `<line x1="${x}" y1="20" x2="${x}" y2="155" class="fret-wire" stroke-width="2"/>`;
+                if([3,5,7,9,15].includes(f)) svg+= `<circle cx="${x-fW/2}" cy="87.5" r="6" class="inlay"/>`;
+                if(f===12) { svg+= `<circle cx="${x-fW/2}" cy="60" r="6" class="inlay"/><circle cx="${x-fW/2}" cy="115" r="6" class="inlay"/>`; }
+                if([1,3,5,7,9,12,15].includes(f)) svg+= `<text class="fret-num" x="${x-fW/2}" y="175">${f}</text>`;
+            }
+            for(let i=0; i<6; i++){
+                let y = 35 + (5-i)*22;
+                let cls = i<3 ? 'string-wound' : 'string-plain';
+                let isMuted = frets[i] === -1;
+                let op = isMuted ? 0.25 : (i<3 ? 0.9 : 0.8); 
+                svg += `<line x1="${nut-10}" y1="${y}" x2="${W}" y2="${y}" class="${cls}" stroke-width="${1+(1-i/5)}" style="opacity: ${op};"/>`;
+            }
+            
+            const acts = frets.filter(f=>f>0);
+            if(acts.length>=2 && !frets.includes(0) && !flags.includes('nb')) {
+                let min = Math.min(...acts);
+                if(frets.filter(f=>f===min).length >= 2) {
+                    let sI = frets.findIndex(f=>f===min);
+                    let eI = 5 - [...frets].reverse().findIndex(f=>f===min);
+                    let y1 = 35 + (5-sI)*22; 
+                    let y2 = 35 + (5-eI)*22;
+                    svg += `<rect x="${nut+min*fW-fW/2-14}" y="${Math.min(y1,y2)-14}" width="28" height="${Math.abs(y1-y2)+28}" rx="14" fill="#3b82f6" fill-opacity="0.4"/>`;
+                }
+            }
+            
+            frets.forEach((f, i) => {
+                let y = 35 + (5-i)*22;
+                if(f===-1) {
+                    svg += `<text x="${nut/2}" y="${y}" class="mute-mark" font-size="20">×</text>`;
+                } else {
+                    let info = getLabel(rootVal, i, f, typeId);
+                    let col = info.isR ? '#ef4444' : '#2563eb';
+                    let cx = f===0 ? nut/2 : nut + f*fW - fW/2;
+                    svg += `<circle cx="${cx}" cy="${y}" r="13" fill="${col}" stroke="white" stroke-width="1.5" class="note-circle"/>`;
+                    let txt = state.displayMode==='note' ? info.n : info.d;
+                    svg += `<text class="svg-text n-lbl" data-n="${info.n}" data-d="${info.d}" x="${cx}" y="${y}" fill="white" font-size="${txt.length>2?9:11}">${txt}</text>`;
                 }
             });
+            return svg + `</svg>`;
         }
 
         function render() {
-            const grid = document.getElementById('chord-grid');
-            grid.innerHTML = '';
-            let c = 0;
-            
-            // Filters
-            let rh = `<button onclick="setR('ALL')" class="px-3 py-1.5 rounded-full text-sm font-bold whitespace-nowrap btn-all ${state.root==='ALL'?'bg-blue-600 text-white':'bg-[#333] text-gray-400'}">ALL</button>`;
-            ROOT_VALUES.forEach(r => {
-                const name = (state.accidental === '#' ? r.s : r.f);
-                rh += `<button onclick="setR('${name}')" class="px-3 py-1.5 rounded-full text-sm font-bold whitespace-nowrap ${state.root===name?'bg-blue-600 text-white':'bg-[#333] text-gray-400'}">${name}</button>`;
-            });
+            let rh = `<button onclick="setR('ALL')" class="bass-btn all-btn ${state.root==='ALL'?'active':''}">All</button>`;
+            ROOTS.forEach(r => rh += `<button onclick="setR('${r.name}')" class="bass-btn ${state.root===r.name?'active':''}">${r.name}</button>`);
             document.getElementById('root-filters').innerHTML = rh;
-
-            let th = `<button onclick="setT('ALL')" class="px-3 py-1 rounded text-xs font-bold whitespace-nowrap btn-all ${state.type==='ALL'?'bg-slate-700 text-white':'text-slate-500'}">All</button>`;
+            
+            let th = `<button onclick="setT('ALL')" class="bass-btn all-btn ${state.type==='ALL'?'active':''}">All</button>`;
             TYPES.forEach(t => {
-                if(t.id==='ALL') return;
-                th += `<button onclick="setT('${t.id}')" class="px-3 py-1 rounded text-xs font-bold whitespace-nowrap ${state.type===t.id?'bg-slate-700 text-white':'text-slate-500'} border border-transparent ${state.type===t.id?'':'hover:border-slate-600'}">${t.name}</button>`;
+                if(t.id!=='ALL') th += `<button onclick="setT('${t.id}')" class="bass-btn ${state.type===t.id?'active':''} min-w-max">${t.name}</button>`;
             });
             document.getElementById('type-filters').innerHTML = th;
 
-            // Generation
-            ROOT_VALUES.forEach(r => {
-                const rootName = (state.accidental === '#' ? r.s : r.f);
-                if(state.root!=='ALL' && state.root!==rootName) return;
-                
+            const grid = document.getElementById('chord-grid');
+            grid.innerHTML = '';
+            let c = 0;
+
+            ROOTS.forEach(root => {
+                if(state.root!=='ALL' && state.root!==root.name) return;
                 TYPES.forEach(type => {
                     if(type.id==='ALL') return;
                     if(state.type!=='ALL' && state.type!==type.id) return;
                     
-                    const key = rootName + type.id;
+                    const key = root.name + type.id;
                     const data = CHORD_DB[key];
                     if(!data) return;
                     c++;
 
                     const sel = state.chordSelection[key] || 'std';
-                    let activePatterns = (sel === 'std') ? data.std : data.slash.filter(s => s.bass === sel);
-                    if (activePatterns.length === 0) activePatterns = data.std;
+                    let pat, isS = false;
+                    if(sel === 'std') {
+                        let idx = state.stdIndices[key] || 0;
+                        pat = data.std[idx % data.std.length];
+                    } else {
+                        pat = data.slash.find(s => s.bass === sel);
+                        if(!pat) { state.chordSelection[key]='std'; pat=data.std[0]; }
+                        else isS = true;
+                    }
 
-                    const subKey = `${key}-${sel}`;
-                    let idx = state.subIndices[subKey] || 0;
-                    if (idx >= activePatterns.length) idx = 0;
+                    const title = isS 
+                        ? `${root.name}${type.suffix}<span class="text-yellow-500">/${sel}</span>` 
+                        : `${root.name}${type.suffix}`;
                     
-                    const pat = activePatterns[idx];
-                    const isS = (sel !== 'std');
-                    const title = isS ? `${rootName}${type.suffix}<span class="text-yellow-500">/${sel}</span>` : `${rootName}${type.suffix}`;
-                    const uid = key.replace('#','s').replace('/','_');
+                    let omitHTML = '';
+                    const actualDegrees = getDegrees(root.val, pat.f, type.id);
+                    const idealDegrees = CHORD_FORMULAS[type.id] || [];
+                    const missing = idealDegrees.filter(d => !actualDegrees.has(d));
+                    
+                    if (missing.length > 0) {
+                        let isWarning = false;
+                        if (missing.includes('3') || missing.includes('m3') || missing.includes('M3') || 
+                            missing.includes('7') || missing.includes('b7') || missing.includes('M7') || 
+                            missing.includes('bb7')) isWarning = true;
+                        
+                        if (type.id.includes('9') && missing.includes('9')) isWarning = true;
+                        if (type.id.includes('11') && (missing.includes('11') || missing.includes('#11'))) isWarning = true;
+                        if (type.id.includes('13') && missing.includes('13')) isWarning = true;
+                        if (type.id.includes('6') && missing.includes('6')) isWarning = true;
+                        
+                        omitHTML = `<span class="omit-badge ${isWarning ? 'warning' : ''}">Omit: ${missing.join(', ')}</span>`;
+                    }
 
-                    const card = createChordCard(key, title, pat, r.v, data, idx, activePatterns, uid);
+                    let ctrl = `<div class="h-6 w-full"></div>`;
+                    if(sel==='std' && data.std.length > 1) {
+                        let i = state.stdIndices[key] || 0;
+                        ctrl = `<div class="flex items-center w-full mb-1 bg-[#1a1a1a] rounded border border-[#333]"><button onclick="chgStd('${key}',-1)" class="flex-1 text-gray-400 text-xs py-1">◀</button><span class="text-xs text-gray-400 font-mono">Var ${i%data.std.length+1}/${data.std.length}</span><button onclick="chgStd('${key}',1)" class="flex-1 text-gray-400 text-xs py-1">▶</button></div>`;
+                    }
+                    
+                    let btns = '';
+                    if(data.slash.length) {
+                        btns += `<div class="mt-2 flex flex-wrap gap-1 justify-center">`;
+                        btns += `<button onclick="selB('${key}','std')" class="bass-btn std-sel-btn ${sel==='std'?'active':''}">Standard</button>`;
+                        
+                        let seen = new Set();
+                        data.slash.forEach(s => { 
+                            if(!seen.has(s.bass)) { 
+                                seen.add(s.bass); 
+                                btns += `<button onclick="selB('${key}','${s.bass}')" class="bass-btn ${sel===s.bass?'active':''}">/${s.bass}</button>`; 
+                            } 
+                        });
+                        btns += `</div>`;
+                    }
+
+                    const uid = key.replace('#','s');
+                    const svg = drawBoard(parseFrets(pat.f), root.val, type.id, uid, pat.flags);
+                    
+                    const card = document.createElement('div');
+                    card.className = 'chord-card p-4';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-2xl font-bold text-white flex gap-2 items-center flex-wrap">${title}${omitHTML}<button class="play-btn" onclick="playChord('${pat.f}')">🔊</button></h2>
+                            <div class="w-24">${ctrl}</div>
+                        </div>
+                        <div class="w-full overflow-x-auto fretboard-scroll" id="fb-${uid}">${svg}</div>
+                        ${btns}
+                    `;
                     grid.appendChild(card);
-                    
-                    centerScroll(uid, parseFrets(pat.f));
+
+                    setTimeout(() => {
+                        const el = document.getElementById(`fb-${uid}`);
+                        if(el) {
+                            const fr = parseFrets(pat.f).filter(x=>x>0);
+                            if(fr.length) {
+                                const center = (Math.min(...fr)+Math.max(...fr))/2;
+                                el.scrollLeft = 40 + center*45 - el.clientWidth/2;
+                            }
+                        }
+                    }, 50);
                 });
             });
-            document.getElementById('count-display').textContent = `${c} forms`;
-            document.getElementById('no-results').className = c===0 ? "text-center py-20 text-slate-600" : "hidden";
+            document.getElementById('no-results').className = c===0?'text-center py-20 text-gray-500':'hidden';
         }
 
         window.setR = v => { state.root = v; render(); };
         window.setT = v => { state.type = v; render(); };
-        
-        window.selB = (k,b) => { 
-            state.chordSelection[k]=b; 
-            state.subIndices[`${k}-${b}`] = 0; 
-            updateSingleCard(k);
+        window.selB = (k,b) => { state.chordSelection[k]=b; render(); };
+        window.chgStd = (k,d) => {
+            const len = CHORD_DB[k].std.length;
+            let i = state.stdIndices[k] || 0;
+            state.stdIndices[k] = (i + d + len) % len;
+            render();
         };
-        window.chgVar = (k, sel, d) => {
-            const data = CHORD_DB[k];
-            let len = 0;
-            if (sel === 'std') len = data.std.length;
-            else len = data.slash.filter(s => s.bass === sel).length;
-
-            const subKey = `${k}-${sel}`;
-            let i = state.subIndices[subKey] || 0;
-            state.subIndices[subKey] = (i + d + len) % len;
-            updateSingleCard(k);
-        };
-
-        function updateSingleCard(key) {
-            const uid = key.replace('#','s').replace('/','_');
-            const card = document.getElementById(`card-${uid}`);
-            if(!card) return;
-
-            const rootName = (state.accidental === '#' ? ROOT_VALUES.find(r=>r.s === key.replace(/m7-5|mM7|add9|sus4|sus2|aug7|aug|dim|maj7|m7|m|7|$/, "")).s : ROOT_VALUES.find(r=>r.f === key.replace(/m7-5|mM7|add9|sus4|sus2|aug7|aug|dim|maj7|m7|m|7|$/, "")).f);
-            const rVal = parseInt(card.getAttribute('data-root-val'));
-            
-            let typeObj = TYPES[1]; 
-            const typeId = key.substring(rootName.length);
-            const foundType = TYPES.find(t => t.id === typeId);
-            if(foundType) typeObj = foundType;
-
-            const data = CHORD_DB[key];
-            const sel = state.chordSelection[key] || 'std';
-            
-            let activePatterns = (sel === 'std') ? data.std : data.slash.filter(s => s.bass === sel);
-            if (activePatterns.length === 0) activePatterns = data.std;
-
-            const subKey = `${key}-${sel}`;
-            let idx = state.subIndices[subKey] || 0;
-            if (idx >= activePatterns.length) idx = 0;
-            const pat = activePatterns[idx];
-            
-            const isS = (sel !== 'std');
-            const title = isS ? `${rootName}${typeObj.suffix}<span class="text-yellow-500">/${sel}</span>` : `${rootName}${typeObj.suffix}`;
-
-            const newCard = createChordCard(key, title, pat, rVal, data, idx, activePatterns, uid);
-            card.replaceWith(newCard);
-            centerScroll(uid, parseFrets(pat.f));
-        }
-
         window.toggleDisplayMode = m => {
-            if(state.displayMode===m) return;
             state.displayMode=m;
-            document.getElementById('btn-mode-note').className = `switch-btn ${m==='note'?'active':''}`;
-            document.getElementById('btn-mode-degree').className = `switch-btn ${m==='degree'?'active':''}`;
-            updateAllCardLabels();
+            updModeBtns();
+            document.querySelectorAll('.n-lbl').forEach(e => {
+                let t = m==='note' ? e.getAttribute('data-n') : e.getAttribute('data-d');
+                e.textContent = t;
+                e.setAttribute('font-size', t.length>2?9:11);
+            });
         };
 
         generateAll();
         render();
+        updModeBtns();
+
+        function updModeBtns() {
+            document.getElementById('btn-note').className = `px-4 py-1.5 rounded text-xs font-bold transition-all ${state.displayMode==='note'?'bg-blue-600 text-white shadow':'text-gray-400 hover:text-white'}`;
+            document.getElementById('btn-degree').className = `px-4 py-1.5 rounded text-xs font-bold transition-all ${state.displayMode==='degree'?'bg-blue-600 text-white shadow':'text-gray-400 hover:text-white'}`;
+        }
 
     </script>
 </body>
 </html>
-
 
