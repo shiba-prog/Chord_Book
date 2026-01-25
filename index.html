@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ギターコード図鑑 v75 - Strict Fix</title>
+    <title>ギターコード図鑑 v93 - Scroll Fix Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #121212; color: #e2e8f0; }
         
-        .fretboard-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; border-radius: 0 0 8px 8px; scroll-behavior: smooth; }
+        .fretboard-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; border-radius: 0 0 8px 8px; }
         .fretboard-scroll::-webkit-scrollbar { height: 10px; }
         .fretboard-scroll::-webkit-scrollbar-track { background: #2d2d2d; }
         .fretboard-scroll::-webkit-scrollbar-thumb { background: #555; border-radius: 5px; }
@@ -20,11 +20,17 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             transition: border-color 0.2s, transform 0.2s; 
             display: flex; flex-direction: column; 
+            min-height: 380px; 
         }
         .chord-card:hover { border-color: #eab308; transform: translateY(-2px); }
 
         .svg-text { font-family: sans-serif; font-weight: 800; pointer-events: none; text-anchor: middle; dominant-baseline: central; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
         .note-circle { transition: fill 0.2s; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6)); }
+        
+        .note-interactive { cursor: pointer; }
+        .note-interactive:hover { opacity: 0.8; }
+        .note-interactive:active { transform: scale(0.95); transform-box: fill-box; transform-origin: center; }
+
         .mute-mark { font-family: sans-serif; font-weight: 900; text-anchor: middle; dominant-baseline: central; fill: #ef4444; }
         .fret-num { font-family: monospace; font-size: 11px; fill: #64748b; text-anchor: middle; font-weight: bold; }
 
@@ -44,65 +50,47 @@
         .bass-btn:hover { background: linear-gradient(to bottom, #444, #333); color: white; border-color: #666; }
         .bass-btn.active { background: linear-gradient(to bottom, #f59e0b, #d97706); color: #fff; border-color: #fbbf24; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
         
-        .all-btn {
-            min-width: 44px !important;
-            max-width: 44px !important;
-            flex: none !important;
-        }
-
-        .std-sel-btn {
-            font-size: 13px !important;
-            padding: 8px 20px !important;
-            min-width: 80px !important;
-            flex: none !important;
-            border-color: #555 !important;
-        }
+        .all-btn { min-width: 44px !important; max-width: 44px !important; flex: none !important; }
+        .std-sel-btn { font-size: 13px !important; padding: 8px 20px !important; min-width: 80px !important; flex: none !important; border-color: #555 !important; }
 
         .play-btn {
             background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
-            color: white; border-radius: 50%; width: 40px; height: 40px;
+            color: white; border-radius: 50%; width: 32px; height: 32px;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
-            cursor: pointer; border: 1px solid #1e40af; margin-left: 12px; font-size: 20px;
+            cursor: pointer; border: 1px solid #1e40af; margin-left: 12px; font-size: 16px;
         }
         .play-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
         .play-btn:active { transform: scale(0.95); box-shadow: inset 0 3px 5px rgba(0,0,0,0.3); }
 
         .omit-badge {
-            font-size: 10px;
-            background-color: rgba(71, 85, 105, 0.4);
-            color: #cbd5e1;
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            margin-left: 8px;
-            white-space: nowrap;
+            font-size: 10px; background-color: rgba(71, 85, 105, 0.4); color: #cbd5e1;
+            padding: 0px 6px;
+            line-height: 1.5;
+            border-radius: 4px; border: 1px solid rgba(148, 163, 184, 0.2);
+            margin-left: 8px; white-space: nowrap; display: inline-block; vertical-align: middle;
         }
-        .omit-badge.warning {
-            background-color: rgba(127, 29, 29, 0.4);
-            color: #fca5a5;
-            border-color: rgba(239, 68, 68, 0.5);
-            font-weight: bold;
-        }
+        .omit-badge.warning { background-color: rgba(127, 29, 29, 0.4); color: #fca5a5; border-color: rgba(239, 68, 68, 0.5); font-weight: bold; }
+        .omit-badge.rootless { background-color: rgba(147, 51, 234, 0.3); color: #d8b4fe; border-color: rgba(168, 85, 247, 0.5); }
 
-        select.tone-select { background-color: #222; color: #eee; border: 1px solid #444; font-size: 12px; padding: 6px 10px; border-radius: 6px; outline: none; cursor: pointer; }
+        select.tone-select { background-color: #222; color: #eee; border: 1px solid #444; font-size: 11px; padding: 4px 8px; border-radius: 6px; outline: none; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <header class="bg-[#181818] sticky top-0 z-50 border-b border-[#333] shadow-xl pb-2">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
-                <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-bold text-white tracking-wider flex items-center gap-2">
-                        <span class="text-yellow-500 text-3xl">🎸</span> 
-                        <span class="text-gray-200">Chord Book <span class="text-xs font-sans font-normal text-gray-500 ml-1">v75</span></span>
+    <header class="bg-[#181818] sticky top-0 z-50 border-b border-[#333] shadow-xl pb-0">
+        <div class="max-w-7xl mx-auto px-4 py-1">
+            <div class="flex flex-row items-center justify-between gap-2 mb-1">
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-bold text-white tracking-wider flex items-center gap-1">
+                        <span class="text-yellow-500 text-2xl">🎸</span> 
+                        <span class="text-gray-200">Chord Book <span class="text-[10px] font-sans font-normal text-gray-500 ml-0.5">v93</span></span>
                     </h1>
-                    <div id="status-msg" class="text-xs text-gray-400 bg-[#2a2a2a] px-3 py-1 rounded border border-[#444]">Ready</div>
+                    <div id="status-msg" class="text-[10px] text-gray-400 bg-[#2a2a2a] px-2 py-0.5 rounded border border-[#444] hidden md:block">Ready</div>
                 </div>
-                <div class="flex flex-wrap items-center gap-4">
-                    <div class="flex items-center gap-2 bg-[#222] p-1.5 rounded-lg border border-[#333]">
-                        <span class="text-[10px] text-gray-500 font-bold uppercase ml-2 mr-1">Sound</span>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex items-center gap-1 bg-[#222] p-1 rounded-lg border border-[#333]">
+                        <span class="text-[9px] text-gray-500 font-bold uppercase ml-1 mr-0.5 hidden sm:inline">Sound</span>
                         <select id="tone-selector" class="tone-select" onchange="setGuitarTone(this.value)">
                             <option value="acoustic">Acoustic</option>
                             <option value="nylon">Classical</option>
@@ -110,25 +98,25 @@
                             <option value="drive">Elec (Drive)</option>
                         </select>
                     </div>
-                    <div class="flex items-center bg-[#222] rounded-lg p-1 border border-[#333] shadow-inner">
-                        <button onclick="toggleDisplayMode('note')" id="btn-note" class="px-4 py-1.5 rounded text-xs font-bold transition-all bg-blue-600 text-white shadow">音名</button>
-                        <button onclick="toggleDisplayMode('degree')" id="btn-degree" class="px-4 py-1.5 rounded text-xs font-bold transition-all text-gray-400 hover:text-white">度数</button>
+                    <div class="flex items-center bg-[#222] rounded-lg p-0.5 border border-[#333] shadow-inner">
+                        <button onclick="toggleDisplayMode('note')" id="btn-note" class="px-3 py-1 rounded text-[10px] font-bold transition-all bg-blue-600 text-white shadow">音名</button>
+                        <button onclick="toggleDisplayMode('degree')" id="btn-degree" class="px-3 py-1 rounded text-[10px] font-bold transition-all text-gray-400 hover:text-white">度数</button>
                     </div>
                 </div>
             </div>
 
-            <div id="root-filters" class="flex overflow-x-auto gap-2 pb-2 scrollbar-hide mb-1"></div>
-            <div id="type-filters" class="flex gap-2 pb-2 overflow-x-auto scrollbar-hide border-t border-[#333] pt-2"></div>
+            <div id="root-filters" class="flex overflow-x-auto gap-1 pb-1 scrollbar-hide mb-0"></div>
+            <div id="type-filters" class="flex gap-1 pb-1 overflow-x-auto scrollbar-hide border-t border-[#333] pt-1"></div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <div id="chord-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6"></div>
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <div id="chord-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4"></div>
         <div id="no-results" class="hidden text-center py-20 text-gray-500">No chords found.</div>
     </main>
 
-    <footer class="text-center py-12 text-xs text-gray-600 border-t border-[#333] mt-8 bg-[#181818]">
-        Guitar Chord Book v75 - Strict 69 & Dim Fix
+    <footer class="text-center py-8 text-xs text-gray-600 border-t border-[#333] mt-8 bg-[#181818]">
+        Guitar Chord Book v93 - Fixed Initial Scroll Position
     </footer>
 
     <script>
@@ -143,102 +131,55 @@
             { id: 'ALL', name: 'All', suffix: '' },
             { id: '', name: 'Major', suffix: '' }, { id: 'm', name: 'Minor', suffix: 'm' }, 
             { id: '7', name: '7th', suffix: '7' }, { id: 'm7', name: 'm7', suffix: 'm7' }, { id: 'maj7', name: 'Maj7', suffix: 'maj7' },
-            { id: 'sus4', name: 'sus4', suffix: 'sus4' }, 
-            { id: '7sus4', name: '7sus4', suffix: '7sus4' },
+            { id: 'sus4', name: 'sus4', suffix: 'sus4' }, { id: '7sus4', name: '7sus4', suffix: '7sus4' },
             { id: 'sus2', name: 'sus2', suffix: 'sus2' },
-            { id: 'add9', name: 'add9', suffix: 'add9' }, 
-            { id: 'm9', name: 'm7(9)', suffix: 'm7(9)' }, 
-            { id: '9', name: '9', suffix: '9' }, 
-            { id: '7b9', name: '7(b9)', suffix: '7(b9)' }, 
-            { id: 'maj9', name: 'maj9', suffix: 'maj9' },
-            { id: '11', name: '11', suffix: '11' },
-            { id: 'm11', name: 'm11', suffix: 'm11' }, 
-            { id: '7s11', name: '7(#11)', suffix: '7(#11)' }, 
-            { id: '9s11', name: '9(#11)', suffix: '9(#11)' }, 
-            { id: 'maj7s11', name: 'maj7(#11)', suffix: 'maj7(#11)' }, 
+            { id: 'add9', name: 'add9', suffix: 'add9' }, { id: 'm9', name: 'm7(9)', suffix: 'm7(9)' }, { id: '9', name: '9', suffix: '9' }, 
+            { id: '7b9', name: '7(b9)', suffix: '7(b9)' }, { id: 'maj9', name: 'maj9', suffix: 'maj9' },
+            { id: '11', name: '11', suffix: '11' }, { id: 'm11', name: 'm11', suffix: 'm11' }, 
+            { id: '7s11', name: '7(#11)', suffix: '7(#11)' }, { id: '9s11', name: '9(#11)', suffix: '9(#11)' }, { id: 'maj7s11', name: 'maj7(#11)', suffix: 'maj7(#11)' }, 
             { id: 'add11', name: 'add11', suffix: 'add11' }, 
             { id: '7s9', name: '7(#9)', suffix: '7(#9)' },
-            { id: '13', name: '7(13)', suffix: '7(13)' }, 
-            { id: 'maj13', name: 'maj7(13)', suffix: 'maj7(13)' }, 
-            { id: '7b13', name: '7(b13)', suffix: '7(b13)' }, 
-            { id: 'aug', name: 'aug', suffix: 'aug' },
-            { id: 'aug7', name: 'aug7', suffix: 'aug7' },
+            { id: '13', name: '7(13)', suffix: '7(13)' }, { id: 'maj13', name: 'maj7(13)', suffix: 'maj7(13)' }, { id: '7b13', name: '7(b13)', suffix: '7(b13)' }, 
+            { id: 'aug', name: 'aug', suffix: 'aug' }, { id: 'aug7', name: 'aug7', suffix: 'aug7' },
             { id: 'dim', name: 'dim', suffix: 'dim' }, { id: 'dim7', name: 'dim7', suffix: 'dim7' },
             { id: 'm7-5', name: 'm7-5', suffix: 'm7-5' }, { id: 'mM7', name: 'mM7', suffix: 'mM7' },
-            { id: '6', name: '6', suffix: '6' }, { id: 'm6', name: 'm6', suffix: 'm6' },
-            { id: '69', name: '69', suffix: '69' }
+            { id: '6', name: '6', suffix: '6' }, { id: 'm6', name: 'm6', suffix: 'm6' }, { id: '69', name: '69', suffix: '69' }
         ];
 
-        // Definitive Formula List
         const CHORD_FORMULAS = {
-            '': ['R', 'M3', '5'], 
-            'm': ['R', 'm3', '5'],
-            '7': ['R', 'M3', '5', 'b7'],
-            'm7': ['R', 'm3', '5', 'b7'],
-            'maj7': ['R', 'M3', '5', 'M7'],
-            'sus4': ['R', '4', '5'],
-            '7sus4': ['R', '4', '5', 'b7'],
-            'sus2': ['R', '2', '5'],
-            'add9': ['R', 'M3', '5', '9'],
-            'm9': ['R', 'm3', '5', 'b7', '9'],
-            '9': ['R', 'M3', '5', 'b7', '9'],
-            '7b9': ['R', 'M3', '5', 'b7', 'b9'],
-            'maj9': ['R', 'M3', '5', 'M7', '9'],
-            '11': ['R', 'b7', '11'], 
-            'm11': ['R', 'm3', '5', 'b7', '11'],
-            '7s11': ['R', 'M3', '5', 'b7', '#11'],
-            '9s11': ['R', 'M3', '5', 'b7', '9', '#11'],
-            'maj7s11': ['R', 'M3', '5', 'M7', '#11'],
-            'add11': ['R', 'M3', '5', '11'],
-            '7s9': ['R', 'M3', '5', 'b7', '#9'],
-            '13': ['R', 'M3', '5', 'b7', '13'], 
-            'maj13': ['R', 'M3', '5', 'M7', '13'], 
-            '7b13': ['R', 'M3', '5', 'b7', 'b13'],
-            'aug': ['R', 'M3', '#5'],
-            'aug7': ['R', 'M3', '#5', 'b7'],
-            'dim': ['R', 'm3', 'b5'], 
-            'dim7': ['R', 'm3', 'b5', 'bb7'],
-            'm7-5': ['R', 'm3', 'b5', 'b7'],
-            'mM7': ['R', 'm3', '5', 'M7'],
-            '6': ['R', 'M3', '5', '6'],
-            'm6': ['R', 'm3', '5', '6'],
-            '69': ['R', 'M3', '5', '6', '9']
+            '': ['R', 'M3', '5'], 'm': ['R', 'm3', '5'], '7': ['R', 'M3', '5', 'b7'],
+            'm7': ['R', 'm3', '5', 'b7'], 'maj7': ['R', 'M3', '5', 'M7'],
+            'sus4': ['R', '4', '5'], '7sus4': ['R', '4', '5', 'b7'], 'sus2': ['R', '2', '5'],
+            'add9': ['R', 'M3', '5', '9'], 'm9': ['R', 'm3', '5', 'b7', '9'], '9': ['R', 'M3', '5', 'b7', '9'],
+            '7b9': ['R', 'M3', '5', 'b7', 'b9'], 'maj9': ['R', 'M3', '5', 'M7', '9'],
+            '11': ['R', 'b7', '11'], 'm11': ['R', 'm3', '5', 'b7', '11'],
+            '7s11': ['R', 'M3', '5', 'b7', '#11'], '9s11': ['R', 'M3', '5', 'b7', '9', '#11'],
+            'maj7s11': ['R', 'M3', '5', 'M7', '#11'], 'add11': ['R', 'M3', '5', '11'],
+            '7s9': ['R', 'M3', '5', 'b7', '#9'], '13': ['R', 'M3', '5', 'b7', '13'],
+            'maj13': ['R', 'M3', '5', 'M7', '13'], '7b13': ['R', 'M3', '5', 'b7', 'b13'],
+            'aug': ['R', 'M3', '#5'], 'aug7': ['R', 'M3', '#5', 'b7'],
+            'dim': ['R', 'm3', 'b5'], 'dim7': ['R', 'm3', 'b5', 'bb7'],
+            'm7-5': ['R', 'm3', 'b5', 'b7'], 'mM7': ['R', 'm3', '5', 'M7'],
+            '6': ['R', 'M3', '5', '6'], 'm6': ['R', 'm3', '5', '6'], '69': ['R', 'M3', '5', '6', '9']
         };
 
-        // CHORD_SPECS: Forbidden checks
         const CHORD_SPECS = {
-            '': { req: ['R', 'M3'], ban: ['m3'] },
-            'm': { req: ['R', 'm3'], ban: ['M3'] },
-            '7': { req: ['R', 'M3', 'b7'], ban: ['m3', 'M7'] },
-            'm7': { req: ['R', 'm3', 'b7'], ban: ['M3', 'M7'] },
-            'maj7': { req: ['R', 'M3', 'M7'], ban: ['m3', 'b7'] },
-            'sus4': { req: ['R', '4', '5'], ban: ['m3', 'M3'] },
-            '7sus4': { req: ['R', '4', 'b7'], ban: ['m3', 'M3'] },
-            'sus2': { req: ['R', '2', '5'], ban: ['m3', 'M3'] },
-            'add9': { req: ['R', 'M3', '9'], ban: ['m3', 'b7', 'M7'] },
-            'm9': { req: ['R', 'm3', 'b7', '9'], ban: ['M3'] },
-            '9': { req: ['R', 'M3', 'b7', '9'], ban: ['m3'] },
-            '7b9': { req: ['R', 'M3', 'b7', 'b9'], ban: ['m3'] },
-            'maj9': { req: ['R', 'M3', 'M7', '9'], ban: ['m3', 'b7'] },
-            '11': { req: ['R', 'b7', '11'], ban: ['M3', 'm3'] }, 
-            'm11': { req: ['R', 'm3', 'b7', '11'], ban: ['M3'] },
-            '7s11': { req: ['R', 'M3', 'b7', '#11'], ban: ['m3', '9'] }, 
-            '9s11': { req: ['R', 'M3', 'b7', '9', '#11'], ban: ['m3'] },
-            'maj7s11': { req: ['R', 'M3', 'M7', '#11'], ban: ['m3', 'b7'] },
-            'add11': { req: ['R', 'M3', '11'], ban: ['m3', 'b7', 'M7', '6'] }, 
-            '7s9': { req: ['R', 'M3', 'b7', '#9'], ban: [] }, 
-            '13': { req: ['R', 'M3', 'b7', '13'], ban: ['m3'] }, 
-            'maj13': { req: ['R', 'M3', 'M7', '13'], ban: ['m3', 'b7'] },
-            '7b13': { req: ['R', 'M3', 'b7', 'b13'], ban: ['m3'] },
-            'aug': { req: ['R', 'M3', '#5'], ban: ['m3', '5'] },
-            'aug7': { req: ['R', 'M3', '#5', 'b7'], ban: ['m3', '5'] },
-            'dim': { req: ['R', 'm3', 'b5'], ban: ['M3', '5', 'b7', 'M7', '6'] }, // Ban 6th/bb7 for triad
-            'dim7': { req: ['R', 'm3', 'b5', 'bb7'], ban: ['M3', '5', 'b7', 'M7'] },
-            'm7-5': { req: ['R', 'm3', 'b5', 'b7'], ban: ['M3', '5'] },
-            'mM7': { req: ['R', 'm3', 'M7'], ban: ['M3', 'b7'] },
-            '6': { req: ['R', 'M3', '6'], ban: ['m3', 'b7', 'M7'] },
-            'm6': { req: ['R', 'm3', '6'], ban: ['M3', 'b7', 'M7'] },
-            '69': { req: ['R', 'M3', '6', '9'], ban: ['m3', 'b7', 'M7', 'b5', '#11'] } // STRICT
+            '': { req: ['R', 'M3'], ban: ['m3'] }, 'm': { req: ['R', 'm3'], ban: ['M3'] },
+            '7': { req: ['R', 'M3', 'b7'], ban: ['m3', 'M7'] }, 'm7': { req: ['R', 'm3', 'b7'], ban: ['M3', 'M7'] },
+            'maj7': { req: ['R', 'M3', 'M7'], ban: ['m3', 'b7'] }, 'sus4': { req: ['R', '4', '5'], ban: ['m3', 'M3'] },
+            '7sus4': { req: ['R', '4', 'b7'], ban: ['m3', 'M3'] }, 'sus2': { req: ['R', '2', '5'], ban: ['m3', 'M3'] },
+            'add9': { req: ['R', 'M3', '9'], ban: ['m3', 'b7', 'M7'] }, 'm9': { req: ['R', 'm3', 'b7', '9'], ban: ['M3'] },
+            '9': { req: ['R', 'M3', 'b7', '9'], ban: ['m3'] }, '7b9': { req: ['R', 'M3', 'b7', 'b9'], ban: ['m3'] },
+            'maj9': { req: ['R', 'M3', 'M7', '9'], ban: ['m3', 'b7'] }, '11': { req: ['R', 'b7', '11'], ban: ['M3', 'm3'] }, 
+            'm11': { req: ['R', 'm3', 'b7', '11'], ban: ['M3'] }, '7s11': { req: ['R', 'M3', 'b7', '#11'], ban: ['m3', '9'] }, 
+            '9s11': { req: ['R', 'M3', 'b7', '9', '#11'], ban: ['m3'] }, 'maj7s11': { req: ['R', 'M3', 'M7', '#11'], ban: ['m3', 'b7'] },
+            'add11': { req: ['R', 'M3', '11'], ban: ['m3', 'b7', 'M7', '6'] }, '7s9': { req: ['R', 'M3', 'b7', '#9'], ban: [] }, 
+            '13': { req: ['R', 'M3', 'b7', '13'], ban: ['m3'] }, 'maj13': { req: ['R', 'M3', 'M7', '13'], ban: ['m3', 'b7'] },
+            '7b13': { req: ['R', 'M3', 'b7', 'b13'], ban: ['m3'] }, 'aug': { req: ['R', 'M3', '#5'], ban: ['m3', '5'] },
+            'aug7': { req: ['R', 'M3', '#5', 'b7'], ban: ['m3', '5'] }, 'dim': { req: ['R', 'm3', 'b5'], ban: ['M3', '5', 'b7', 'M7', '6'] }, 
+            'dim7': { req: ['R', 'm3', 'b5', 'bb7'], ban: ['M3', '5', 'b7', 'M7'] }, 'm7-5': { req: ['R', 'm3', 'b5', 'b7'], ban: ['M3', '5'] },
+            'mM7': { req: ['R', 'm3', 'M7'], ban: ['M3', 'b7'] }, '6': { req: ['R', 'M3', '6'], ban: ['m3', 'b7', 'M7'] },
+            'm6': { req: ['R', 'm3', '6'], ban: ['M3', 'b7', 'M7'] }, '69': { req: ['R', 'M3', '6', '9'], ban: ['m3', 'b7', 'M7', 'b5', '#11'] }
         };
 
         const TUNING_VALS = [4, 9, 2, 7, 11, 4];
@@ -247,183 +188,146 @@
         const SHAPES = {
             '': [ { f: '022100', base: 4, n: 'E Shape' }, { f: 'x02220', base: 9, n: 'A Shape' }, { f: 'xx0232', base: 2, n: 'D Shape' } ],
             'm': [ { f: '022000', base: 4, n: 'Em Shape' }, { f: 'x02210', base: 9, n: 'Am Shape' }, { f: 'xx0231', base: 2, n: 'Dm Shape' } ],
-            '7': [ { f: '020100', base: 4, n: 'E7 Shape' }, { f: 'x02020', base: 9, n: 'A7 Shape' }, { f: 'x32310', base: 0, n: 'C7 Shape' }, { f: 'xx0212', base: 2, n: 'D7 Shape' } ],
+            '7': [ { f: '020100', base: 4, n: 'E7 Shape' }, { f: 'x02020', base: 9, n: 'A7 Shape' }, { f: 'x32310', base: 0, n: 'C7 Shape' }, { f: 'xx0212', base: 2, n: 'D7 Shape' }, { f: 'x212x2', base: 11, n: 'B7 Shape' } ],
             'm7': [ { f: '020000', base: 4, n: 'Em7 Shape' }, { f: 'x02010', base: 9, n: 'Am7 Shape' }, { f: 'xx0211', base: 2, n: 'Dm7 Shape' } ],
             'maj7': [ { f: '021100', base: 4, n: 'Emaj7 Shape' }, { f: 'x02120', base: 9, n: 'Amaj7 Shape' }, { f: 'xx0222', base: 2, n: 'Dmaj7 Shape' } ],
-            'sus4': [ 
-                { f: '022200', base: 4, n: 'Esus4 Shape' }, 
-                { f: 'x02230', base: 9, n: 'Asus4 Shape' }, 
-                { f: 'xx0233', base: 2, n: 'Dsus4 Shape' },
-                { f: '3x0013', base: 7, n: 'Gsus4 Shape' }
-            ],
-            '7sus4': [
-                { f: 'x02030', base: 9, n: 'A7sus4 Shape' },
-                { f: '3x0211', base: 7, n: 'G7sus4 Shape' },
-                { f: 'xx0213', base: 2, n: 'D7sus4 Shape' }
-            ],
+            'sus4': [ { f: '022200', base: 4, n: 'Esus4 Shape' }, { f: 'x02230', base: 9, n: 'Asus4 Shape' }, { f: 'xx0233', base: 2, n: 'Dsus4 Shape' }, { f: '3x0013', base: 7, n: 'Gsus4 Shape' } ],
+            '7sus4': [ { f: 'x02030', base: 9, n: 'A7sus4 Shape' }, { f: '3x0211', base: 7, n: 'G7sus4 Shape' }, { f: 'xx0213', base: 2, n: 'D7sus4 Shape' } ],
             'sus2': [ { f: 'x02200', base: 9, n: 'Asus2 Shape' }, { f: 'xx0230', base: 2, n: 'Dsus2 Shape' } ],
-            'add9': [ 
-                { f: '022102', base: 4, n: 'Eadd9 Shape' }, 
-                { f: 'x32030', base: 0, n: 'Cadd9 Shape' },
-                { f: 'xx3213', base: 5, n: 'Fadd9 Shape' }
-            ],
-            '9': [ 
-                { f: '020102', base: 4, n: 'E9 Shape' }, 
-                { f: 'x21222', base: 11, n: 'B9 Shape' }, 
-                { f: 'x3233x', base: 0, n: 'C9 Shape' } 
-            ],
-            '7b9': [ 
-                { f: 'x3232x', base: 0, n: 'C7(b9) Shape' }, 
-                { f: 'x02323', base: 9, n: 'A7(b9) Shape' },
-                { f: '020101', base: 4, n: 'E7(b9) Shape' }
-            ],
-            'm9': [ 
-                { f: '020002', base: 4, n: 'Em9 Shape' }, { f: 'x20222', base: 11, n: 'Bm9 Shape' },
-                { f: 'x2022x', base: 11, n: 'Bm9 Shape' },
-                { f: 'x3133x', base: 0, n: 'Cm9 Shape' } 
-            ], 
-            'maj9': [ 
-                { f: 'x3243x', base: 0, n: 'Cmaj9 Shape' }, { f: '021102', base: 4, n: 'Emaj9 Shape' },
-                { f: 'x30000', base: 0, n: 'Cmaj9 Open' }, 
-                { f: '3x0202', base: 7, n: 'Gmaj9 Open' }, 
-                { f: 'x8798x', base: 5, n: 'Fmaj9 Shell' }
-            ],
-            '11': [ 
-                { f: '3x3211', base: 7, n: 'G11 (F/G)' },
-                { f: 'x53553', base: 0, n: 'C11 (Bb/C)' },
-                { f: 'x00010', base: 2, n: 'D11 (C/D)' }
-            ],
-            'm11': [ 
-                { f: '000000', base: 4, n: 'Em11 Open' },
-                { f: 'x00010', base: 9, n: 'Am11 Open' },
-                { f: '3x331x', base: 7, n: 'Gm11 Shape' },
-                { f: '7x775x', base: 11, n: 'Bm11 Shape' }
-            ],
-            '7s11': [ // Pure 7#11 (No 9th)
-                { f: '2x231x', base: 6, n: 'F#7(#11) No9' }, 
-                { f: 'x3434x', base: 0, n: 'C7(#11) No9' },
-                { f: '1x120x', base: 5, n: 'F7(#11) No9' } 
-            ],
-            '9s11': [ // 9#11
-                { f: 'x32332', base: 0, n: 'C9(#11) Shape' },
-                { f: 'x54554', base: 2, n: 'D9(#11) Shape' }
-            ],
-            'maj7s11': [ 
-                { f: '133200', base: 5, n: 'Fmaj7(#11)' },
-                { f: 'x3244x', base: 0, n: 'Cmaj7(#11) Shell' },
-                { f: '8x997x', base: 0, n: 'Cmaj7(#11) High' }, 
-                { f: 'x02140', base: 9, n: 'Amaj7(#11)' }, 
-                { f: '2x331x', base: 6, n: 'F#maj7(#11)' }
-            ],
-            'add11': [ 
-                { f: 'x32011', base: 0, n: 'Cadd11 Shape' },
-                { f: '320013', base: 7, n: 'Gadd11 Shape' },
-                { f: '002100', base: 4, n: 'Eadd11 Open' } 
-            ],
-            '7s9': [ 
-                { f: '07678x', base: 4, n: 'Hendrix E Shape' }, 
-                { f: 'x3234x', base: 0, n: 'Hendrix C Shape' },
-                { f: '2122xx', base: 6, n: '6th Root (#9)' },
-                { f: '020103', base: 4, n: 'Open (#9)' }
-            ],
-            '13': [ 
-                { f: '3x3455', base: 7, n: 'G13 Rich' },
-                { f: '020120', base: 4, n: 'E13 Shape' },
-                { f: '2x234x', base: 6, n: 'F#13 Shape' } 
-            ], 
-            'maj13': [ 
-                { f: '3x445x', base: 7, n: 'Gmaj13 Shape' }, { f: '1x223x', base: 5, n: 'Fmaj13 Shape' }, { f: 'x13233', base: 10, n: 'Bbmaj13 Shape' },
-                { f: 'x02122', base: 9, n: 'Amaj13 Shape' }
-            ], 
-            '7b13': [ 
-                { f: '3x344x', base: 7, n: 'G7(b13) Shape', flags: ['nb'] }, { f: 'x13132', base: 10, n: 'Bb7(b13) Shape' },
-                { f: 'x02021', base: 9, n: 'A7(b13) Shape' } 
-            ],
-            'aug': [ 
-                { f: 'x3211x', base: 0, n: 'Caug Shape' }, { f: 'xx0332', base: 2, n: 'Daug Shape' },
-                { f: 'x0322x', base: 9, n: 'Aaug Shape' }, 
-                { f: 'xx2110', base: 4, n: 'Eaug Shape' }, 
-                { f: '32100x', base: 7, n: 'Gaug Shape' } 
-            ],
-            'aug7': [ 
-                { f: '0x0110', base: 4, n: 'Eaug7 Shape' }, 
-                { f: 'x03021', base: 9, n: 'Aaug7 Shape' }, 
-                { f: '2x233x', base: 6, n: 'F#aug7 Shape' },
-                { f: 'x32314', base: 0, n: 'Caug7 Open' }
-            ],
-            'dim': [ 
-                { f: 'xx0131', base: 2, n: 'Ddim Shape' }, 
-                { f: 'x0121x', base: 9, n: 'Adim Shape' } 
-            ], 
-            'dim7': [ 
-                { f: 'xx1212', base: 3, n: '4th Root' }, { f: 'x01212', base: 9, n: '5th Root' }, { f: '3x232x', base: 7, n: '6th Root' },
-                { f: 'x1202x', base: 10, n: 'Bbdim7 Shape' }
-            ],
-            'm7-5': [ 
-                { f: 'x01013', base: 9, n: 'Am7-5 Shape' }, 
-                { f: 'xx0111', base: 2, n: 'Dm7-5 Shape' }, 
-                { f: '2x221x', base: 6, n: 'F#m7-5 Shape' },
-                { f: 'x3434x', base: 0, n: 'Cm7-5 Shape' }
-            ],
+            'add9': [ { f: '022102', base: 4, n: 'Eadd9 Shape' }, { f: 'x32030', base: 0, n: 'Cadd9 Shape' }, { f: 'xx3213', base: 5, n: 'Fadd9 Shape' }, { f: 'x21x22', base: 11, n: 'Badd9 Shape' } ],
+            '9': [ { f: '020102', base: 4, n: 'E9 Shape' }, { f: 'x21222', base: 11, n: 'B9 Shape' }, { f: 'x3233x', base: 0, n: 'C9 Shape' } ],
+            '7b9': [ { f: 'x3232x', base: 0, n: 'C7(b9) Shape' }, { f: 'x02323', base: 9, n: 'A7(b9) Shape' }, { f: '020101', base: 4, n: 'E7(b9) Shape' } ],
+            'm9': [ { f: '020002', base: 4, n: 'Em9 Shape' }, { f: 'x20222', base: 11, n: 'Bm9 Shape' }, { f: 'x2022x', base: 11, n: 'Bm9 Shape' }, { f: 'x3133x', base: 0, n: 'Cm9 Shape' }, { f: 'xx1333', base: 0, n: 'Cm9 Rootless' } ], 
+            'maj9': [ { f: 'x3243x', base: 0, n: 'Cmaj9 Shape' }, { f: '021102', base: 4, n: 'Emaj9 Shape' }, { f: 'x30000', base: 0, n: 'Cmaj9 Open' }, { f: '3x0202', base: 7, n: 'Gmaj9 Open' }, { f: 'x8798x', base: 5, n: 'Fmaj9 Shell' }, { f: 'xx2433', base: 0, n: 'Cmaj9 Rootless' } ],
+            '11': [ { f: '3x3211', base: 7, n: 'G11 (F/G)' }, { f: 'x53553', base: 0, n: 'C11 (Bb/C)' }, { f: 'x00010', base: 2, n: 'D11 (C/D)' } ],
+            'm11': [ { f: '000000', base: 4, n: 'Em11 Open' }, { f: 'x00010', base: 9, n: 'Am11 Open' }, { f: '3x331x', base: 7, n: 'Gm11 Shape' }, { f: '7x775x', base: 11, n: 'Bm11 Shape' } ],
+            '7s11': [ { f: '2x231x', base: 6, n: 'F#7(#11) No9' }, { f: 'x3434x', base: 0, n: 'C7(#11) No9' }, { f: '1x120x', base: 5, n: 'F7(#11) No9' } ],
+            '9s11': [ { f: 'x32332', base: 0, n: 'C9(#11) Shape' }, { f: 'x54554', base: 2, n: 'D9(#11) Shape' } ],
+            'maj7s11': [ { f: '133200', base: 5, n: 'Fmaj7(#11)' }, { f: 'x3244x', base: 0, n: 'Cmaj7(#11) Shell' }, { f: '8x997x', base: 0, n: 'Cmaj7(#11) High' }, { f: 'x02140', base: 9, n: 'Amaj7(#11)' }, { f: '2x331x', base: 6, n: 'F#maj7(#11)' } ],
+            'add11': [ { f: 'x32011', base: 0, n: 'Cadd11 Shape' }, { f: '320013', base: 7, n: 'Gadd11 Shape' }, { f: '002100', base: 4, n: 'Eadd11 Open' } ],
+            '7s9': [ { f: '07678x', base: 4, n: 'Hendrix E Shape' }, { f: 'x3234x', base: 0, n: 'Hendrix C Shape' }, { f: '2122xx', base: 6, n: '6th Root (#9)' }, { f: '020103', base: 4, n: 'Open (#9)' } ],
+            '13': [ { f: '3x3455', base: 7, n: 'G13 Rich' }, { f: '020120', base: 4, n: 'E13 Shape' }, { f: '2x234x', base: 6, n: 'F#13 Shape' }, { f: 'xx3455', base: 7, n: 'G13 Rootless' } ], 
+            'maj13': [ { f: '3x445x', base: 7, n: 'Gmaj13 Shape' }, { f: '1x223x', base: 5, n: 'Fmaj13 Shape' }, { f: 'x13233', base: 10, n: 'Bbmaj13 Shape' }, { f: 'x02122', base: 9, n: 'Amaj13 Shape' } ], 
+            '7b13': [ { f: '3x344x', base: 7, n: 'G7(b13) Shape', flags: ['nb'] }, { f: 'x13132', base: 10, n: 'Bb7(b13) Shape' }, { f: 'x02021', base: 9, n: 'A7(b13) Shape' } ],
+            'aug': [ { f: 'x3211x', base: 0, n: 'Caug Shape' }, { f: 'xx0332', base: 2, n: 'Daug Shape' }, { f: 'x0322x', base: 9, n: 'Aaug Shape' }, { f: 'xx2110', base: 4, n: 'Eaug Shape' }, { f: '32100x', base: 7, n: 'Gaug Shape' } ],
+            'aug7': [ { f: '0x0110', base: 4, n: 'Eaug7 Shape' }, { f: 'x03021', base: 9, n: 'Aaug7 Shape' }, { f: '2x233x', base: 6, n: 'F#aug7 Shape' }, { f: 'x32314', base: 0, n: 'Caug7 Open' } ],
+            'dim': [ { f: 'xx0131', base: 2, n: 'Ddim Shape' }, { f: 'x0121x', base: 9, n: 'Adim Shape' }, { f: 'xx121x', base: 3, n: 'Ebdim Shape' }, { f: 'xx454x', base: 6, n: 'F#dim Shape' } ], 
+            'dim7': [ { f: 'xx1212', base: 3, n: '4th Root' }, { f: 'x01212', base: 9, n: '5th Root' }, { f: '3x232x', base: 7, n: '6th Root' }, { f: 'x1202x', base: 10, n: 'Bbdim7 Shape' } ],
+            'm7-5': [ { f: 'x0101x', base: 9, n: 'Am7-5 NoTop' }, { f: 'x01013', base: 9, n: 'Am7-5 Shape' }, { f: 'xx0111', base: 2, n: 'Dm7-5 Shape' }, { f: '2x221x', base: 6, n: 'F#m7-5 Shape' }, { f: 'x3434x', base: 0, n: 'Cm7-5 Shape' } ],
             'mM7': [ { f: 'x02110', base: 9, n: 'AmM7 Shape' }, { f: '021000', base: 4, n: 'EmM7 Shape' }, { f: 'xx0221', base: 2, n: 'DmM7 Shape' } ],
-            '6': [ 
-                { f: '022120', base: 4, n: 'E6 Shape' }, 
-                { f: 'x02222', base: 9, n: 'A6 Shape' }, 
-                { f: 'x32210', base: 0, n: 'C6 Shape' },
-                { f: '320000', base: 7, n: 'G6 Shape' }, 
-                { f: 'xx0202', base: 2, n: 'D6 Shape' }, 
-                { f: 'x1303x', base: 10, n: 'Bb6 Shape' } 
-            ],
-            'm6': [ 
-                { f: '022020', base: 4, n: 'Em6 Shape' }, { f: 'x02212', base: 9, n: 'Am6 Shape' },
-                { f: 'x2010x', base: 11, n: 'Bm6 Shape' }, 
-                { f: 'x1x021', base: 10, n: 'Bbm6 Shape' }, 
-                { f: '1x011x', base: 5, n: 'Fm6 Shape' } 
-            ],
-            '69': [
-                { f: '322200', base: 7, n: 'G69 Shape' },
-                { f: 'x32233', base: 0, n: 'C69 Shape' },
-                { f: '5444xx', base: 9, n: 'A69 Shape' } // Fixed A69
-            ]
+            '6': [ { f: '022120', base: 4, n: 'E6 Shape' }, { f: 'x02222', base: 9, n: 'A6 Shape' }, { f: 'x32210', base: 0, n: 'C6 Shape' }, { f: '320000', base: 7, n: 'G6 Shape' }, { f: 'xx0202', base: 2, n: 'D6 Shape' }, { f: 'x1303x', base: 10, n: 'Bb6 Shape' } ],
+            'm6': [ { f: '022020', base: 4, n: 'Em6 Shape' }, { f: 'x02212', base: 9, n: 'Am6 Shape' }, { f: 'x2010x', base: 11, n: 'Bm6 Shape' }, { f: 'x1x021', base: 10, n: 'Bbm6 Shape' }, { f: '1x011x', base: 5, n: 'Fm6 Shape' } ],
+            '69': [ { f: '322200', base: 7, n: 'G69 Shape' }, { f: 'x32233', base: 0, n: 'C69 Shape' }, { f: '5444xx', base: 9, n: 'A69 Shape' } ]
         };
 
         const SLASH_TEMPLATES = {
-            '': [ 
-                { f: '022100', base: 9, bassInterval: 7, n: '/5 (A-form)' }, 
-                { f: '022100', base: 4, bassInterval: 4, n: '/3 (E-form)' }, 
-                { f: '2x0232', base: 2, bassInterval: 4, n: '/3 (D-form)' }
-            ],
-            'm': [ 
-                { f: '3x2210', base: 9, bassInterval: 10, n: '/b7 (Am/G)' },
-                { f: '2x2210', base: 9, bassInterval: 9, n: '/6 (Am/F#)' },
-                { f: '322000', base: 4, bassInterval: 3, n: '/b3 (Em/G)' }
-            ],
-            '7': [
-                 { f: '2x0212', base: 2, bassInterval: 4, n: '/3 (D7/F#)' },
-                 { f: '002020', base: 9, bassInterval: 7, n: '/5 (A7/E)' }
-            ],
-            'maj7': [
-                 { f: '332000', base: 0, bassInterval: 7, n: '/5 (Cmaj7/G)' }
-            ]
+            '': [ { f: '022100', base: 9, bassInterval: 7, n: '/5 (A-form)' }, { f: '022100', base: 4, bassInterval: 4, n: '/3 (E-form)' }, { f: '2x0232', base: 2, bassInterval: 4, n: '/3 (D-form)' } ],
+            'm': [ { f: '3x2210', base: 9, bassInterval: 10, n: '/b7 (Am/G)' }, { f: '2x2210', base: 9, bassInterval: 9, n: '/6 (Am/F#)' }, { f: '322000', base: 4, bassInterval: 3, n: '/b3 (Em/G)' } ],
+            '7': [ { f: '2x0212', base: 2, bassInterval: 4, n: '/3 (D7/F#)' }, { f: '002020', base: 9, bassInterval: 7, n: '/5 (A7/E)' } ],
+            'maj7': [ { f: '332000', base: 0, bassInterval: 7, n: '/5 (Cmaj7/G)' } ]
         };
 
         const MANUAL_OVERRIDES = {
-            'C': { std: [{f:'x32010', n:'Open'}], slash: [{b:'E', f:'032010'}, {b:'G', f:'332010'}, {b:'F', f:'132010'}] },
-            'G': { std: [{f:'320003', n:'Open'}, {f:'320033', n:'Pop'}], slash: [{b:'B', f:'x20003'}, {b:'F#', f:'2x0003'}, {b:'D', f:'xx0003'}] },
-            'D': { std: [{f:'xx0232', n:'Open'}], slash: [{b:'F#', f:'2x0232'}, {b:'A', f:'x00232'}, {b:'C', f:'x30232'}] },
-            'A': { std: [{f:'x02220', n:'Open'}], slash: [{b:'G', f:'3x2220'}, {b:'C#', f:'x42220'}, {b:'E', f:'002220'}] },
-            'E': { std: [{f:'022100', n:'Open'}], slash: [{b:'G#', f:'4x2100'}, {b:'B', f:'x22100'}, {b:'G', f:'322100'}] },
-            'Am': { slash: [{b:'G', f:'3x2210'}, {b:'F#', f:'2x2210'}] },
-            'Em': { slash: [{b:'B', f:'x22000'}, {b:'D', f:'xx0000'}, {b:'C#', f:'x42000'}] },
-            'F': { std: [{f:'133211', n:'Barre'}], slash: [{b:'C', f:'133211'}, {b:'G', f:'3x3211'}] },
-            'Dm': { slash: [{b:'C', f:'x30231'}, {b:'B', f:'x20231'}, {b:'Bb', f:'x10231'}] },
-            'Cadd9': { std: [{f: 'x32030', n: 'Open'}] },
+            'C': { 
+                std: [{f:'x32010', n:'Open'}, {f:'x35553', n:'A Shape'}], 
+                slash: [
+                    {b:'E', f:'032010', n:'/3 (on E)'}, 
+                    {b:'G', f:'332010', n:'/5 (on G)'}, 
+                    {b:'F', f:'132010', n:'/11 (on F)'}
+                ] 
+            },
+            'Cm': { slash: [{b:'Eb', f:'xx1013', n:'/b3 (Open Style)'}, {b:'Eb', f:'x65543', n:'/b3 (High)'}] }, 
+            'C7': { slash: [{b:'E', f:'032310', n:'/3 (on E)'}, {b:'Bb', f:'x12010', n:'/b7 (on Bb)'}] },
+            'G': { 
+                std: [{f:'320003', n:'Open'}, {f:'320033', n:'Pop'}, {f:'355433', n:'E Shape'}], 
+                slash: [
+                    {b:'B', f:'x20003', n:'/3 (on B)'}, 
+                    {b:'D', f:'xx0003', n:'/5 (on D)'},
+                    {b:'F#', f:'2x0003', n:'/7 (on F#)'} 
+                ] 
+            },
+            'D': { 
+                std: [{f:'xx0232', n:'Open'}, {f:'x57775', n:'A Shape'}], 
+                slash: [
+                    {b:'F#', f:'2x0232', n:'/3 (on F#)'}, 
+                    {b:'A', f:'x00232', n:'/5 (on A)'}, 
+                    {b:'C', f:'x30232', n:'/b7 (on C)'}
+                ] 
+            },
+            'A': { 
+                std: [{f:'x02220', n:'Open'}, {f:'577655', n:'E Shape'}], 
+                slash: [
+                    {b:'C#', f:'x42220', n:'/3 (on C#)'}, 
+                    {b:'E', f:'002220', n:'/5 (on E)'},
+                    {b:'G', f:'3x2220', n:'/b7 (on G)'}
+                ] 
+            },
+            'E': { 
+                std: [{f:'022100', n:'Open'}], 
+                slash: [
+                    {b:'G#', f:'4x2100', n:'/3 (on G#)'}, 
+                    {b:'B', f:'x22100', n:'/5 (on B)'}
+                ] 
+            },
+            'Am': { 
+                std: [{f:'x02210', n:'Open'}],
+                slash: [
+                    {b:'G', f:'3x2210', n:'/b7 (on G)'}, 
+                    {b:'F#', f:'2x2210', n:'/6 (on F#)'},
+                    {b:'E', f:'002210', n:'/5 (on E)'}
+                ] 
+            },
+            'Em': { 
+                std: [{f:'022000', n:'Open'}],
+                slash: [
+                    {b:'B', f:'x22000', n:'/5 (on B)'}, 
+                    {b:'D', f:'xx0000', n:'/b7 (on D)'}, 
+                    {b:'C#', f:'x42000', n:'/6 (on C#)'}
+                ] 
+            },
+            'F': { 
+                std: [{f:'133211', n:'Barre'}, {f:'x33211', n:'Barre 5-str'}], 
+                slash: [
+                    {b:'C', f:'x33211', n:'/5 (on C)'}, 
+                    {b:'A', f:'x03211', n:'/3 (on A)'},
+                    {b:'G', f:'3x3211', n:'/2 (on G)'}
+                ] 
+            },
+            'Dm': { 
+                std: [{f:'xx0231', n:'Open'}],
+                slash: [
+                    {b:'C', f:'x30231', n:'/b7 (on C)'}, 
+                    {b:'B', f:'x20231', n:'/6 (on B)'}, 
+                    {b:'Bb', f:'x10231', n:'/b6 (on Bb)'},
+                    {b:'A', f:'x00231', n:'/5 (on A)'}
+                ] 
+            },
+            'Bb': {
+                std: [{f:'x13331', n:'A Shape'}, {f:'688766', n:'E Shape'}],
+                slash: [
+                    {b:'D', f:'xx0331', n:'/3 (on D)'},
+                    {b:'F', f:'113331', n:'/5 (on F)'}
+                ]
+            },
+            'Db': { slash: [{b:'Ab', f:'4x666x', n:'/5 (on Ab)'}] },
+            'Eb': { slash: [{b:'Bb', f:'6x888x', n:'/5 (on Bb)'}] },
+            'Ab': { slash: [{b:'Eb', f:'x66544', n:'/5 (on Eb)'}] },
+            'B': {
+                std: [{f:'x24442', n:'A Shape'}, {f:'799877', n:'E Shape'}, {f:'x21202', n:'B7 Open'}],
+                slash: [
+                    {b:'D#', f:'x6444x', n:'/3 (on D#)'},
+                    {b:'Gb', f:'2x444x', n:'/5 (on F#)'}, {b:'F#', f:'2x444x', n:'/5 (on F#)'}
+                ] 
+            },
+            'Cadd9': { std: [{f: 'x32030', n: 'Open'}, {f: 'x32033', n: 'Open 2'}] },
             'Am7-5': { std: [{f: 'x0101x', n: 'Open'}] },
             'Bbdim7': { std: [{f: 'x12020', n: 'Open'}] },
             'Caug7': { std: [{f: 'x32314', n: 'Open Stretch'}] }
         };
 
         const CHORD_DB = {};
+        
+        let subIndices = {};
 
         const parseFrets = (str) => {
             if(!str) return [-1,-1,-1,-1,-1,-1];
@@ -465,8 +369,25 @@
                 fingerCount = 1; 
                 frets.forEach(f => { if(f > min) fingerCount++; });
             } else if (maxFretCount >= 3 && !frets.includes(0)) {
-                const uniqueFrets = new Set(actives);
-                fingerCount = uniqueFrets.size;
+                const clusterFret = parseInt(Object.keys(fretCounts).find(k => fretCounts[k] >= 3));
+                const clusterStrings = frets.map((f, i) => f === clusterFret ? i : -1).filter(i => i !== -1);
+                const minStr = Math.min(...clusterStrings);
+                const maxStr = Math.max(...clusterStrings);
+                
+                let possible = true;
+                for(let s = minStr; s <= maxStr; s++) {
+                    if (frets[s] !== -1 && frets[s] < clusterFret) {
+                        possible = false;
+                        break;
+                    }
+                }
+                
+                if (possible) {
+                    const uniqueFrets = new Set(actives);
+                    fingerCount = uniqueFrets.size;
+                } else {
+                    frets.forEach(f => { if(f > 0) fingerCount++; });
+                }
             } else {
                 frets.forEach(f => { if(f > 0) fingerCount++; });
             }
@@ -536,15 +457,19 @@
                             MANUAL_OVERRIDES[key].std.forEach(m => {
                                 const idx = list.findIndex(x => x.f === m.f);
                                 if(idx > -1) list.splice(idx, 1);
-                                list.push({ ...m, flags: m.flags || [] });
+                                list.unshift({ ...m, flags: m.flags || [] });
                             });
                         }
                         if (MANUAL_OVERRIDES[key].slash) {
                             const manualSlashes = MANUAL_OVERRIDES[key].slash;
-                            slashList = slashList.filter(s => !manualSlashes.some(m => m.b === s.bass && m.f === s.f));
+                            slashList = slashList.filter(s => !manualSlashes.some(m => m.b === s.bass));
                             const formattedManual = manualSlashes.map(m => ({ bass: m.b, f: m.f, flags: m.flags || [] }));
                             slashList = [...formattedManual, ...slashList];
                         }
+                    }
+                    
+                    if(key === 'C7' && !slashList.some(s => s.bass === 'E')) {
+                         slashList.unshift({ bass: 'E', f: '032310', n: '/3 (on E)' });
                     }
 
                     list.sort((a,b) => {
@@ -553,8 +478,7 @@
                         if(!aOp && bOp) return 1;
                         return getMinFret(a.f) - getMinFret(b.f);
                     });
-
-                    if (list.length === 0) list.push({ f: 'xxxxxx', n: 'No Data' });
+                    
                     CHORD_DB[key] = { std: list, slash: slashList };
                 });
             });
@@ -617,6 +541,14 @@
             osc.start(t); osc.stop(t+attack+decay); noiseSrc.start(t);
         }
 
+        window.playNote = async (strIndex, fret) => {
+            if(fret === -1) return;
+            await initAudio();
+            const BASE_FREQS = [82.41, 110.00, 146.83, 196.00, 246.94, 329.63];
+            const freq = BASE_FREQS[strIndex] * Math.pow(2, fret/12);
+            playString(freq, audioCtx.currentTime, state.tone);
+        };
+
         async function playChord(fStr) {
             await initAudio();
             const frets = parseFrets(fStr);
@@ -640,34 +572,18 @@
             const name = ROOTS[nVal].name;
 
             let degree = DEGREE_NAMES[interval];
-            
-            if (interval === 2) {
-                if (typeId === 'sus2') {
-                } else {
-                    degree = '9';
-                }
-            }
+            if (interval === 2) { if (typeId === 'sus2') {} else { degree = '9'; } }
             if (typeId === '7s9' && interval === 3) degree = '#9';
             if (typeId === '7b9' && interval === 1) degree = 'b9';
-
             if (typeId === 'dim7' && interval === 9) degree = 'bb7';
             if (typeId.includes('13') && interval === 9) degree = '13';
             if (typeId.includes('b13') && interval === 8) degree = 'b13';
             if ((typeId === 'aug' || typeId === 'aug7') && interval === 8) degree = '#5';
             if (typeId.includes('6') && interval === 9) degree = '6';
-            if (typeId === '69') {
-                if (interval === 2) degree = '9';
-                if (interval === 9) degree = '6';
-            }
+            if (typeId === '69') { if (interval === 2) degree = '9'; if (interval === 9) degree = '6'; }
             if (typeId === '7sus4' && interval === 5) degree = '4';
-            
-            if (interval === 5) { 
-                if(typeId.includes('11') || typeId.includes('sus')) degree = (typeId.includes('sus') ? '4' : '11');
-            }
-            if (interval === 6) { 
-                if(typeId.includes('s11') || typeId.includes('#11')) degree = '#11';
-                else if(typeId.includes('-5') || typeId.includes('dim')) degree = 'b5';
-            }
+            if (interval === 5) { if(typeId.includes('11') || typeId.includes('sus')) degree = (typeId.includes('sus') ? '4' : '11'); }
+            if (interval === 6) { if(typeId.includes('s11') || typeId.includes('#11')) degree = '#11'; else if(typeId.includes('-5') || typeId.includes('dim')) degree = 'b5'; }
 
             return { n: name, d: degree, isR: interval===0 };
         }
@@ -691,7 +607,6 @@
                 let op = isMuted ? 0.25 : (i<3 ? 0.9 : 0.8); 
                 svg += `<line x1="${nut-10}" y1="${y}" x2="${W}" y2="${y}" class="${cls}" stroke-width="${1+(1-i/5)}" style="opacity: ${op};"/>`;
             }
-            
             const acts = frets.filter(f=>f>0);
             if(acts.length>=2 && !frets.includes(0) && !flags.includes('nb')) {
                 let min = Math.min(...acts);
@@ -703,7 +618,6 @@
                     svg += `<rect x="${nut+min*fW-fW/2-14}" y="${Math.min(y1,y2)-14}" width="28" height="${Math.abs(y1-y2)+28}" rx="14" fill="#3b82f6" fill-opacity="0.4"/>`;
                 }
             }
-            
             frets.forEach((f, i) => {
                 let y = 35 + (5-i)*22;
                 if(f===-1) {
@@ -712,13 +626,44 @@
                     let info = getLabel(rootVal, i, f, typeId);
                     let col = info.isR ? '#ef4444' : '#2563eb';
                     let cx = f===0 ? nut/2 : nut + f*fW - fW/2;
-                    svg += `<circle cx="${cx}" cy="${y}" r="13" fill="${col}" stroke="white" stroke-width="1.5" class="note-circle"/>`;
+                    let evt = `onclick="playNote(${i}, ${f}); event.stopPropagation();"`;
+                    svg += `<circle cx="${cx}" cy="${y}" r="13" fill="${col}" stroke="white" stroke-width="1.5" class="note-circle note-interactive" ${evt}/>`;
                     let txt = state.displayMode==='note' ? info.n : info.d;
-                    svg += `<text class="svg-text n-lbl" data-n="${info.n}" data-d="${info.d}" x="${cx}" y="${y}" fill="white" font-size="${txt.length>2?9:11}">${txt}</text>`;
+                    svg += `<text class="svg-text n-lbl note-interactive" data-n="${info.n}" data-d="${info.d}" x="${cx}" y="${y}" fill="white" font-size="${txt.length>2?9:11}" ${evt}>${txt}</text>`;
                 }
             });
             return svg + `</svg>`;
         }
+
+        window.setR = v => { state.root = v; render(); };
+        window.setT = v => { state.type = v; render(); };
+        window.selB = (k,b) => { state.chordSelection[k]=b; updateCard(k); };
+        window.chgStd = (k,d) => {
+            const currentMode = state.chordSelection[k] || 'std';
+            const subKey = `${k}-${currentMode}`;
+            let patterns = [];
+            const data = CHORD_DB[k];
+            if(currentMode === 'std') {
+                patterns = data.std;
+            } else {
+                patterns = data.slash.filter(s => s.bass === currentMode);
+            }
+            if(patterns.length === 0) return;
+            const len = patterns.length;
+            let i = subIndices[subKey] || 0;
+            subIndices[subKey] = (i + d + len) % len;
+            updateCard(k);
+        };
+
+        window.toggleDisplayMode = m => {
+            state.displayMode=m;
+            updModeBtns();
+            document.querySelectorAll('.n-lbl').forEach(e => {
+                let t = m==='note' ? e.getAttribute('data-n') : e.getAttribute('data-d');
+                e.textContent = t;
+                e.setAttribute('font-size', t.length>2?9:11);
+            });
+        };
 
         function render() {
             let rh = `<button onclick="setR('ALL')" class="bass-btn all-btn ${state.root==='ALL'?'active':''}">All</button>`;
@@ -732,7 +677,9 @@
             document.getElementById('type-filters').innerHTML = th;
 
             const grid = document.getElementById('chord-grid');
-            grid.innerHTML = '';
+            const existingCards = grid.querySelectorAll('.chord-card');
+            existingCards.forEach(card => card.style.display = 'none');
+
             let c = 0;
 
             ROOTS.forEach(root => {
@@ -745,120 +692,166 @@
                     const data = CHORD_DB[key];
                     if(!data) return;
                     c++;
-
-                    const sel = state.chordSelection[key] || 'std';
-                    let pat, isS = false;
-                    if(sel === 'std') {
-                        let idx = state.stdIndices[key] || 0;
-                        pat = data.std[idx % data.std.length];
-                    } else {
-                        pat = data.slash.find(s => s.bass === sel);
-                        if(!pat) { state.chordSelection[key]='std'; pat=data.std[0]; }
-                        else isS = true;
+                    
+                    let card = document.getElementById(`card-${key}`);
+                    if (!card) {
+                        card = document.createElement('div');
+                        card.className = 'chord-card p-4';
+                        card.id = `card-${key}`;
+                        grid.appendChild(card);
+                        updateCard(key, true); // Create content
                     }
 
-                    const title = isS 
-                        ? `${root.name}${type.suffix}<span class="text-yellow-500">/${sel}</span>` 
-                        : `${root.name}${type.suffix}`;
+                    // 1. Show card
+                    card.style.display = 'flex';
                     
-                    let omitHTML = '';
-                    const actualDegrees = getDegrees(root.val, pat.f, type.id);
-                    const idealDegrees = CHORD_FORMULAS[type.id] || [];
-                    const missing = idealDegrees.filter(d => !actualDegrees.has(d));
-                    
-                    if (missing.length > 0) {
-                        let isWarning = false;
-                        if (missing.includes('3') || missing.includes('m3') || missing.includes('M3') || 
-                            missing.includes('7') || missing.includes('b7') || missing.includes('M7') || 
-                            missing.includes('bb7')) isWarning = true;
-                        
-                        if (type.id.includes('9') && missing.includes('9')) isWarning = true;
-                        if (type.id.includes('11') && (missing.includes('11') || missing.includes('#11'))) isWarning = true;
-                        if (type.id.includes('13') && missing.includes('13')) isWarning = true;
-                        if (type.id.includes('6') && missing.includes('6')) isWarning = true;
-                        
-                        omitHTML = `<span class="omit-badge ${isWarning ? 'warning' : ''}">Omit: ${missing.join(', ')}</span>`;
-                    }
-
-                    let ctrl = `<div class="h-6 w-full"></div>`;
-                    if(sel==='std' && data.std.length > 1) {
-                        let i = state.stdIndices[key] || 0;
-                        ctrl = `<div class="flex items-center w-full mb-1 bg-[#1a1a1a] rounded border border-[#333]"><button onclick="chgStd('${key}',-1)" class="flex-1 text-gray-400 text-xs py-1">◀</button><span class="text-xs text-gray-400 font-mono">Var ${i%data.std.length+1}/${data.std.length}</span><button onclick="chgStd('${key}',1)" class="flex-1 text-gray-400 text-xs py-1">▶</button></div>`;
-                    }
-                    
-                    let btns = '';
-                    if(data.slash.length) {
-                        btns += `<div class="mt-2 flex flex-wrap gap-1 justify-center">`;
-                        btns += `<button onclick="selB('${key}','std')" class="bass-btn std-sel-btn ${sel==='std'?'active':''}">Standard</button>`;
-                        
-                        let seen = new Set();
-                        data.slash.forEach(s => { 
-                            if(!seen.has(s.bass)) { 
-                                seen.add(s.bass); 
-                                btns += `<button onclick="selB('${key}','${s.bass}')" class="bass-btn ${sel===s.bass?'active':''}">/${s.bass}</button>`; 
-                            } 
-                        });
-                        btns += `</div>`;
-                    }
-
-                    const uid = key.replace('#','s');
-                    const svg = drawBoard(parseFrets(pat.f), root.val, type.id, uid, pat.flags);
-                    
-                    const card = document.createElement('div');
-                    card.className = 'chord-card p-4';
-                    card.innerHTML = `
-                        <div class="flex justify-between items-center mb-2">
-                            <h2 class="text-2xl font-bold text-white flex gap-2 items-center flex-wrap">${title}${omitHTML}<button class="play-btn" onclick="playChord('${pat.f}')">🔊</button></h2>
-                            <div class="w-24">${ctrl}</div>
-                        </div>
-                        <div class="w-full overflow-x-auto fretboard-scroll" id="fb-${uid}">${svg}</div>
-                        ${btns}
-                    `;
-                    grid.appendChild(card);
-
-                    setTimeout(() => {
-                        const el = document.getElementById(`fb-${uid}`);
-                        if(el) {
-                            const fr = parseFrets(pat.f).filter(x=>x>0);
-                            if(fr.length) {
-                                const center = (Math.min(...fr)+Math.max(...fr))/2;
-                                el.scrollLeft = 40 + center*45 - el.clientWidth/2;
-                            }
-                        }
-                    }, 50);
+                    // 2. Adjust scroll position IMMEDIATELY after showing
+                    adjustScroll(key);
                 });
             });
             document.getElementById('no-results').className = c===0?'text-center py-20 text-gray-500':'hidden';
         }
 
-        window.setR = v => { state.root = v; render(); };
-        window.setT = v => { state.type = v; render(); };
-        window.selB = (k,b) => { state.chordSelection[k]=b; render(); };
-        window.chgStd = (k,d) => {
-            const len = CHORD_DB[k].std.length;
-            let i = state.stdIndices[k] || 0;
-            state.stdIndices[k] = (i + d + len) % len;
-            render();
-        };
-        window.toggleDisplayMode = m => {
-            state.displayMode=m;
-            updModeBtns();
-            document.querySelectorAll('.n-lbl').forEach(e => {
-                let t = m==='note' ? e.getAttribute('data-n') : e.getAttribute('data-d');
-                e.textContent = t;
-                e.setAttribute('font-size', t.length>2?9:11);
-            });
-        };
+        // New separate function for scrolling
+        function adjustScroll(key) {
+            const card = document.getElementById(`card-${key}`);
+            if(!card) return;
+            
+            // Get current pattern info from DB directly to calculate center
+            const data = CHORD_DB[key];
+            if (!data) return;
+            
+            const sel = state.chordSelection[key] || 'std';
+            const subKey = `${key}-${sel}`;
+            const idx = subIndices[subKey] || 0;
+            let patterns = (sel === 'std') ? data.std : data.slash.filter(s => s.bass === sel);
+            
+            if (patterns.length === 0) return;
+            const pat = patterns[idx % patterns.length];
+            const uid = key.replace('#','s');
+            const el = document.getElementById(`fb-${uid}`);
+            
+            if(el) {
+                const fr = parseFrets(pat.f);
+                // Include open strings (0) in calculation but ignore mutes (-1)
+                const validFrets = fr.filter(x => x !== -1);
+                
+                let centerFretVal = 1;
+                if(validFrets.length > 0) {
+                    centerFretVal = (Math.min(...validFrets) + Math.max(...validFrets)) / 2;
+                }
+                
+                // Nut(40) + FretWidth(45) * Val - HalfFretWidth(22.5)
+                const centerX = 40 + centerFretVal * 45 - 22.5;
+                
+                // Force scroll
+                el.scrollLeft = centerX - el.clientWidth / 2;
+            }
+        }
+
+        function updateCard(key, isInit = false) {
+            const card = document.getElementById(`card-${key}`);
+            if(!card) return;
+            
+            const data = CHORD_DB[key];
+            const sel = state.chordSelection[key] || 'std';
+            const subKey = `${key}-${sel}`;
+            const idx = subIndices[subKey] || 0;
+            
+            let pat, patterns = [];
+            let isS = false;
+            
+            if(sel === 'std') {
+                patterns = data.std;
+            } else {
+                patterns = data.slash.filter(s => s.bass === sel);
+                isS = true;
+            }
+            
+            if(patterns.length === 0) { pat = { f: 'xxxxxx', n: 'No Data' }; }
+            else { pat = patterns[idx % patterns.length]; }
+            
+            let rootName = '', typeId = '';
+            const sortedRoots = [...ROOTS].sort((a,b) => b.name.length - a.name.length);
+            for(let r of sortedRoots) {
+                if(key.startsWith(r.name)) {
+                    let suffix = key.substring(r.name.length);
+                    if(TYPES.some(t => t.id === suffix)) {
+                        rootName = r.name;
+                        typeId = suffix;
+                        break;
+                    }
+                }
+            }
+            const rootObj = ROOTS.find(r => r.name === rootName);
+            const typeObj = TYPES.find(t => t.id === typeId);
+            const title = isS ? `${rootName}${typeObj.suffix}<span class="text-yellow-500">/${sel}</span>` : `${rootName}${typeObj.suffix}`;
+            
+            let omitHTML = '';
+            let actualDegrees = new Set();
+            if(pat.f !== 'xxxxxx') actualDegrees = getDegrees(rootObj.val, pat.f, typeId);
+            const idealDegrees = CHORD_FORMULAS[typeId] || [];
+            const missing = idealDegrees.filter(d => !actualDegrees.has(d));
+            if (missing.length > 0) {
+                let isWarning = false;
+                if (missing.includes('3') || missing.includes('m3') || missing.includes('M3') || 
+                    missing.includes('7') || missing.includes('b7') || missing.includes('M7') || 
+                    missing.includes('bb7')) isWarning = true;
+                if (typeId.includes('9') && missing.includes('9')) isWarning = true;
+                if (typeId.includes('11') && (missing.includes('11') || missing.includes('#11'))) isWarning = true;
+                if (typeId.includes('13') && missing.includes('13')) isWarning = true;
+                if (typeId.includes('6') && missing.includes('6')) isWarning = true;
+                let badgeClass = 'omit-badge';
+                if (missing.includes('R')) { badgeClass += ' rootless'; isWarning = false; }
+                else if (isWarning) { badgeClass += ' warning'; }
+                omitHTML = `<span class="${badgeClass}">Omit: ${missing.join(', ')}</span>`;
+            }
+
+            let ctrl = `<div class="h-6 w-full"></div>`;
+            if (patterns.length > 1) {
+                 ctrl = `<div class="flex items-center w-full mb-1 bg-[#1a1a1a] rounded border border-[#333]"><button onclick="chgStd('${key}',-1)" class="flex-1 text-gray-400 text-xs py-1">◀</button><span class="text-xs text-gray-400 font-mono">Ver ${idx%patterns.length+1}/${patterns.length}</span><button onclick="chgStd('${key}',1)" class="flex-1 text-gray-400 text-xs py-1">▶</button></div>`;
+            }
+            
+            let btns = '';
+            if(data.slash.length) {
+                btns += `<div class="mt-2 flex flex-wrap gap-1 justify-center">`;
+                btns += `<button onclick="selB('${key}','std')" class="bass-btn std-sel-btn ${sel==='std'?'active':''}">Standard</button>`;
+                let seen = new Set();
+                data.slash.forEach(s => { 
+                    if(!seen.has(s.bass)) { 
+                        seen.add(s.bass); 
+                        btns += `<button onclick="selB('${key}','${s.bass}')" class="bass-btn ${sel===s.bass?'active':''}">/${s.bass}</button>`; 
+                    } 
+                });
+                btns += `</div>`;
+            }
+
+            const uid = key.replace('#','s'); 
+            const svg = drawBoard(parseFrets(pat.f), rootObj.val, typeId, uid, pat.flags);
+
+            card.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-2xl font-bold text-white flex gap-2 items-center flex-wrap">${title}${omitHTML}<button class="play-btn" onclick="playChord('${pat.f}')">🔊</button></h2>
+                    <div class="w-24">${ctrl}</div>
+                </div>
+                <div class="w-full overflow-x-auto fretboard-scroll" id="fb-${uid}">${svg}</div>
+                ${btns}
+            `;
+
+            // Adjust scroll immediately if card is visible
+            if(card.style.display !== 'none') {
+                adjustScroll(key);
+            }
+        }
 
         generateAll();
         render();
         updModeBtns();
 
         function updModeBtns() {
-            document.getElementById('btn-note').className = `px-4 py-1.5 rounded text-xs font-bold transition-all ${state.displayMode==='note'?'bg-blue-600 text-white shadow':'text-gray-400 hover:text-white'}`;
-            document.getElementById('btn-degree').className = `px-4 py-1.5 rounded text-xs font-bold transition-all ${state.displayMode==='degree'?'bg-blue-600 text-white shadow':'text-gray-400 hover:text-white'}`;
+            document.getElementById('btn-note').className = `px-3 py-1 rounded text-[10px] font-bold transition-all ${state.displayMode==='note'?'bg-blue-600 text-white shadow':'text-gray-400 hover:text-white'}`;
+            document.getElementById('btn-degree').className = `px-3 py-1 rounded text-[10px] font-bold transition-all ${state.displayMode==='degree'?'bg-blue-600 text-white shadow':'text-gray-400 hover:text-white'}`;
         }
-
     </script>
 </body>
 </html>
